@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Buku Disetujui</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+    }
+    .action-form {
+      margin: 0;
+    }
+    .flash-message {
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Flash Messages -->
+  <% if (success_msg) { %>
+    <div class="flash-message success"><%= success_msg %></div>
+  <% } %>
+  <% if (error_msg) { %>
+    <div class="flash-message error"><%= error_msg %></div>
+  <% } %>
+
+  <h1>Admin Panel - Buku Disetujui</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Judul</th>
+        <th>Penulis</th>
+        <th>Genre</th>
+        <th>Tahun Terbit</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+<% if (books && books.length > 0) { %>
+  <% books.forEach(book => { %>
+    <tr>
+      <td><%= book.id %></td>
+      <td><%= book.judul %></td>
+      <td><%= book.penulis %></td>
+      <td><%= book.genre || 'Tidak ada genre' %></td>
+      <td><%= book.tahun_terbit || 'Tidak diketahui' %></td>
+      <td>
+        <form action="/admin/delete-book/<%= book.id %>" method="POST">
+          <button type="submit">Hapus</button>
+        </form>
+      </td>
+    </tr>
+  <% }) %>
+<% } else { %>
+  <p>Tidak ada buku yang disetujui.</p>
+<% } %>
+    </tbody>
+  </table>
+
+  <p><a href="/admin/pending-books">Kembali ke Buku Menunggu Persetujuan</a></p>
+
+</body>
+</html>

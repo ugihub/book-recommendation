@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Submit Buku</title>
+  </head>
+  <body>
+    <h2>Submit Buku Baru</h2>
+
+    <% if (error_msg) { %>
+    <div style="color: red"><%= error_msg %></div>
+    <% } %>
+
+    <!-- Tambahkan enctype untuk upload -->
+    <form action="/books/submit" method="POST" enctype="multipart/form-data">
+      <label>Judul:</label>
+      <input type="text" name="judul" required /><br /><br />
+
+      <label>Penulis:</label>
+      <input type="text" name="penulis" required /><br /><br />
+
+      <label>Genre:</label>
+      <input type="text" name="genre" /><br /><br />
+
+      <label>Tahun Terbit:</label>
+      <input type="number" name="tahun_terbit" /><br /><br />
+
+      <label>Penghargaan (opsional):</label>
+      <input
+        type="text"
+        name="awards"
+        placeholder="Misal: Pulitzer Prize, Booker Prize"
+      />
+      <small
+        >Masukkan penghargaan jika buku ini pernah mendapatkannya. Pisahkan
+        dengan koma jika lebih dari satu.</small
+      >
+
+      <label>Deskripsi:</label><br />
+      <textarea name="deskripsi" rows="5" cols="40"></textarea><br /><br />
+
+      <label>Link Baca/Beli (Opsional):</label>
+      <input type="text" name="link_baca_beli" /><br /><br />
+
+      <!-- Input Upload Gambar -->
+      <label>Sampul Buku:</label>
+      <input type="file" name="sampul" accept="image/*" /><br /><br />
+
+      <button type="submit">Kirim Buku</button>
+    </form>
+  </body>
+</html>

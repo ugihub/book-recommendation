@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rekomendasi Buku</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    .nav {
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .nav a {
+      margin-right: 15px;
+      text-decoration: none;
+      color: #007BFF;
+    }
+    .book-list {
+      list-style: none;
+      padding: 0;
+    }
+    .book-item {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .book-item h2 {
+      margin: 0;
+    }
+    .rating {
+      color: #FFD700;
+      font-weight: bold;
+    }
+    .flash-message {
+      margin-bottom: 20px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigasi Dinamis -->
+<div class="nav">
+  <a href="/">Beranda</a>
+  
+  <% if (session && session.user) { %>
+    <span>Selamat datang, <%= session.user.nama %> | </span>
+    <a href="/logout">Logout</a>
+
+    <% if (session.user.role === 'admin') { %>
+      | <a href="/admin/pending-books">Admin Panel</a>
+      | <a href="/admin/users">Kelola Pengguna</a> <!-- Link baru -->
+    <% } else if (session.user.role === 'member') { %>
+      | <a href="/books/submit-book">Submit Buku</a> <!-- Hanya tampil untuk member -->
+    <% } %>
+  <% } else { %>
+    <a href="/login">Login</a> | <a href="/register">Daftar</a>
+  <% } %>
+</div>
+
+  <!-- Flash Message -->
+  <% if (success_msg) { %>
+    <div class="flash-message success"><%= success_msg %></div>
+  <% } %>
+  <% if (error_msg) { %>
+    <div class="flash-message error"><%= error_msg %></div>
+  <% } %>
+
+  <!-- Daftar Buku -->
+  <h1>📚 Rekomendasi Buku</h1>
+  <% if (books && books.length > 0) { %>
+    <ul class="book-list">
+      <% books.forEach(function(book) { %>
+        <li class="book-item">
+          <h2><a href="/books/<%= book.id %>"><%= book.judul %></a></h2>
+          <p><strong>Penulis:</strong> <%= book.penulis %></p>
+          <p><strong>Genre:</strong> <%= book.genre || 'Tidak ada genre' %></p>
+          <p class="rating">★ Rating: 
+            <%= book.avg_rating ? parseFloat(book.avg_rating).toFixed(1) : 'Belum ada rating' %>
+          </p>
+        </li>
+      <% }); %>
+    </ul>
+  <% } else { %>
+    <p>Belum ada buku yang tersedia.</p>
+  <% } %>
+
+</body>
+</html>

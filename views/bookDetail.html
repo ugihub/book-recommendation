@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= book.judul %></title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .nav {
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .nav a {
+      margin-right: 15px;
+      text-decoration: none;
+      color: #007BFF;
+    }
+    .rating {
+      color: #FFD700;
+      font-weight: bold;
+    }
+    .review-form {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    .review-form label {
+      display: block;
+      margin-top: 10px;
+    }
+    .review-form input, .review-form textarea, .review-form select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .review-form button {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .review-form button:hover {
+      background-color: #0056b3;
+    }
+    .review-list {
+      margin-top: 40px;
+    }
+    .review-item {
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+    }
+    .review-item strong {
+      color: #333;
+    }
+    .flash-message {
+      margin-bottom: 20px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigasi Dinamis -->
+<div class="nav">
+  <a href="/">Beranda</a>
+  
+  <% if (session && session.user) { %>
+    <span>Selamat datang, <%= session.user.nama %> | </span>
+    <a href="/logout">Logout</a>
+
+    <% if (session.user.role === 'admin') { %>
+      | <a href="/admin/pending-books">Admin Panel</a>
+      | <a href="/admin/users">Kelola Pengguna</a> <!-- Link baru -->
+    <% } else if (session.user.role === 'member') { %>
+      | <a href="/submit-book">Submit Buku</a> <!-- Hanya tampil untuk member -->
+    <% } %>
+  <% } else { %>
+    <a href="/login">Login</a> | <a href="/register">Daftar</a>
+  <% } %>
+</div>
+
+  <!-- Flash Message -->
+  <% if (success_msg) { %>
+    <div class="flash-message success"><%= success_msg %></div>
+  <% } %>
+  <% if (error_msg) { %>
+    <div class="flash-message error"><%= error_msg %></div>
+  <% } %>
+
+<!-- Detail Buku -->
+<h1>📚 <%= book.judul %></h1>
+
+<!-- Sampul Buku -->
+<% if (book.sampul_url) { %>
+  <img src="<%= book.sampul_url %>" alt="Sampul <%= book.judul %>" style="max-width: 200px; border-radius: 8px; margin-bottom: 20px;">
+<% } else { %>
+  <p>Sampul tidak tersedia</p>
+<% } %>
+
+<p><strong>Penulis:</strong> <%= book.penulis %></p>
+<p><strong>Genre:</strong> <%= book.genre || 'Tidak ada genre' %></p>
+<p><strong>Tahun Terbit:</strong> <%= book.tahun_terbit || 'Tidak diketahui' %></p>
+
+<!-- Rating -->
+          <p class="rating">★ Rating: 
+            <%= book.avg_rating ? parseFloat(book.avg_rating).toFixed(1) : 'Belum ada rating' %>
+          </p>
+
+<!-- Deskripsi Buku -->
+<% if (book.deskripsi) { %>
+  <h3>📖 Sinopsis</h3>
+  <p><%= book.deskripsi %></p>
+<% } else { %>
+  <p>Sinopsis belum tersedia.</p>
+<% } %>
+
+<!-- Link Baca/Beli -->
+<% if (book.link_baca_beli) { %>
+  <p>
+    <a href="<%= book.link_baca_beli %>" target="_blank" style="color: #007BFF;">➡️ Baca atau Beli Buku</a>
+  </p>
+<% } else { %>
+  <p>Link baca/beli belum tersedia.</p>
+<% } %>
+
+<!-- Daftar Rating -->
+<h2>Rating Pengguna</h2>
+<% if (ratings && ratings.length > 0) { %>
+  <ul>
+    <% ratings.forEach(rating => { %>
+      <li>
+        <strong>
+          <% if (rating.anonymous) { %>
+            Anonim
+          <% } else { %>
+            <%= rating.reviewer_name %>
+          <% } %>
+        </strong>: ★ <%= rating.rating %>
+      </li>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p>Belum ada rating.</p>
+<% } %>
+
+<!-- Daftar Komentar -->
+<h2>Komentar Pengguna</h2>
+<% if (reviews && reviews.length > 0) { %>
+  <ul>
+    <% reviews.forEach(review => { %>
+      <li>
+        <strong>
+          <% if (review.anonymous) { %>
+            Anonim
+          <% } else { %>
+            <%= review.reviewer_name %>
+          <% } %>
+        </strong>
+        <br>
+        <%= review.ulasan %>
+      </li>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p>Belum ada komentar.</p>
+<% } %>
+
+<!-- Form Rating -->
+<% if (session && session.user) { %>
+  <div class="rating-form">
+    <h3>Beri Rating</h3>
+    <form action="/ratings/submit" method="POST">
+      <input type="hidden" name="book_id" value="<%= book.id %>">
+
+      <label>Rating (1-5):</label>
+      <select name="rating" required>
+        <option value="">Pilih Rating</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+
+      <button type="submit">Kirim Rating</button>
+    </form>
+  </div>
+<% } else { %>
+  <p><a href="/login">Login</a> untuk memberi rating.</p>
+<% } %>
+
+<!-- Form Komentar -->
+<% if (session && session.user) { %>
+  <div class="review-form">
+    <h3>Tulis Komentar</h3>
+    <% if (error_msg) { %>
+      <div style="color:red"><%= error_msg %></div>
+    <% } %>
+    <form action="/reviews/submit" method="POST">
+      <input type="hidden" name="book_id" value="<%= book.id %>">
+
+      <!-- Nama (Opsional) -->
+      <label>Nama (Opsional):</label>
+      <input type="text" name="reviewer_name" placeholder="Tulis nama atau kosongkan untuk anonim">
+
+      <!-- Opsi Anonim -->
+      <label>
+        <input type="checkbox" name="anonymous" value="true">
+        Tampilkan sebagai Anonim
+      </label>
+
+      <!-- Komentar -->
+      <label>Komentar:</label>
+      <textarea name="ulasan" rows="5" required></textarea>
+
+      <button type="submit">Kirim Komentar</button>
+    </form>
+  </div>
+<% } else { %>
+  <p><a href="/login">Login</a> untuk menulis komentar.</p>
+<% } %>
+
+</body>
+</html>
