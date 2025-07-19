@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Kelola Pengguna</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    .action-form {
+      margin: 0;
+    }
+    .flash-message {
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Flash Messages -->
+  <% if (success_msg) { %>
+    <div class="flash-message success"><%= success_msg %></div>
+  <% } %>
+  <% if (error_msg) { %>
+    <div class="flash-message error"><%= error_msg %></div>
+  <% } %>
+
+  <h1>Admin Panel - Kelola Pengguna</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nama</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% users.forEach(user => { %>
+        <tr>
+          <td><%= user.id %></td>
+          <td><%= user.nama %></td>
+          <td><%= user.email %></td>
+          <td><%= user.role %></td>
+          <td>
+            <% if (user.role === 'user') { %>
+              <form action="/admin/users/promote/<%= user.id %>" method="POST">
+                <button type="submit">Jadikan Member</button>
+              </form>
+            <% } else { %>
+              <em>Tidak bisa diubah</em>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  
+<!-- views/adminUsers.html -->
+<h1>Admin Panel - Kelola Member</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nama</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Suspended Until</th>
+      <th>Reason</th>
+      <th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody>
+ <% users.forEach(user => { %>
+  <tr>
+    <td><%= user.id %></td>
+    <td><%= user.nama %></td>
+    <td><%= user.email %></td>
+    <td><%= user.role %></td>
+    <td>
+      <%= user.suspended_until ? new Date(user.suspended_until).toLocaleString() : 'Tidak ditangguhkan' %>
+    </td>
+    <td><%= user.suspension_reason || '-' %></td>
+    <td>
+      <% if (user.role === 'member') { %>
+        <form action="/admin/suspend-member/<%= user.id %>" method="POST">
+          <input type="number" name="duration" placeholder="Durasi (jam)" required>
+          <input type="text" name="reason" placeholder="Alasan sanksi" required>
+          <button type="submit">Suspend</button>
+        </form>
+
+        <form action="/admin/demote-member/<%= user.id %>" method="POST">
+          <button type="submit">Turunkan ke User</button>
+        </form>
+      <% } %>
+    </td>
+  </tr>
+<% }) %>
+  </tbody>
+</table>
+
+</body>
+</html>

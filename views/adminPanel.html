@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .submission {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+    .submission h3 {
+      margin: 0;
+    }
+    .submission img {
+      max-width: 200px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+    .actions form {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .flash-message {
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Admin Panel</h2>
+<ul>
+  <li><a href="/admin/pending-books">Buku Menunggu Persetujuan</a></li>
+  <li><a href="/admin/approved-books">Buku Disetujui</a></li>
+  <li><a href="/admin/users">Kelola Pengguna</a></li>
+</ul>
+
+  <!-- Flash Messages -->
+  <% if (success_msg) { %>
+    <div class="flash-message success"><%= success_msg %></div>
+  <% } %>
+  <% if (error_msg) { %>
+    <div class="flash-message error"><%= error_msg %></div>
+  <% } %>
+
+  <h1>Admin Panel - Buku Menunggu Persetujuan</h1>
+
+  <% if (submissions && submissions.length > 0) { %>
+    <% submissions.forEach(submission => { %>
+      <div class="submission">
+        <h3><%= submission.judul %></h3>
+        <p><strong>Penulis:</strong> <%= submission.penulis %></p>
+        <p><strong>Genre:</strong> <%= submission.genre || 'Tidak ada genre' %></p>
+        <p><strong>Tahun Terbit:</strong> <%= submission.tahun_terbit || 'Tidak diketahui' %></p>
+        <p><strong>Link Baca/Beli:</strong> 
+          <% if (submission.link_baca_beli) { %>
+            <a href="<%= submission.link_baca_beli %>" target="_blank">Klik di sini</a>
+          <% } else { %>
+            Tidak tersedia
+          <% } %>
+        </p>
+
+        <!-- Sampul -->
+        <% if (submission.sampul_url) { %>
+          <img src="<%= submission.sampul_url %>" alt="Sampul <%= submission.judul %>" />
+        <% } %>
+
+        <!-- Tombol Approve/Reject -->
+        <div class="actions">
+          <form action="/admin/approve-book/<%= submission.id %>" method="POST">
+            <button type="submit">Approve</button>
+          </form>
+          <form action="/admin/reject-book/<%= submission.id %>" method="POST">
+            <button type="submit">Reject</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p>Tidak ada buku menunggu persetujuan.</p>
+  <% } %>
+
+  <!-- views/adminPanel.html -->
+<% if (submissions && submissions.length > 0) { %>
+  <% submissions.forEach(submission => { %>
+    <div class="submission">
+      <h3><%= submission.judul %></h3>
+      <p><strong>Penulis:</strong> <%= submission.penulis %></p>
+
+      <!-- Tombol Hapus -->
+      <form action="/admin/delete-book/<%= submission.id %>" method="POST">
+        <button type="submit">Hapus Buku</button>
+      </form>
+    </div>
+  <% }) %>
+<% } else { %>
+  <p>Tidak ada buku menunggu persetujuan.</p>
+<% } %>
+
+</body>
+</html>
