@@ -1,0 +1,134 @@
+/* src/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* === PALET WARNA UNTUK TEMA GELAP === */
+.dark-theme {
+  --main-bg: #121212;
+  --secondary-bg: #1A1A1A;
+  --border-color: #282828;
+  --main-text: #E5E7EB;
+  --muted-text: #9CA3AF;
+  --accent-color: #F59E0B;
+  --accent-hover: #FBBF24;
+  --accent-text: #121212;
+}
+
+/* === PALET WARNA UNTUK TEMA TERANG === */
+.light-theme {
+  --main-bg: #F9FAFB;
+  --secondary-bg: #FFFFFF;
+  --border-color: #E5E7EB;
+  --main-text: #1F2937;
+  --muted-text: #6B7280;
+  --accent-color: #F97316; /* Oranye yang sedikit lebih pekat untuk kontras */
+  --accent-hover: #FB923C;
+  --accent-text: #FFFFFF;
+}
+
+/* === GAYA GLOBAL YANG MENGGUNAKAN VARIABEL === */
+body {
+  background-color: var(--main-bg);
+  color: var(--main-text);
+  font-family: 'Roboto', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* === GAYA KOMPONEN YANG MENGGUNAKAN VARIABEL === */
+
+/* Navbar */
+.imdb-navbar {
+  background-color: var(--secondary-bg) !important;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s ease;
+}
+.imdb-navbar .navbar-brand {
+  color: var(--main-text);
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+.imdb-navbar .navbar-brand span {
+  background-color: var(--accent-color);
+  color: var(--accent-text);
+  padding: 0 8px;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+.imdb-navbar .nav-link, 
+.imdb-navbar .nav-link.dropdown-toggle {
+  color: var(--muted-text) !important;
+}
+.imdb-navbar .nav-link.disabled {
+  color: var(--muted-text) !important;
+  opacity: 0.7;
+}
+
+/* Kartu Buku */
+.imdb-card {
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  color: var(--main-text);
+}
+.imdb-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+}
+.imdb-card .card-title {
+  color: var(--main-text);
+  font-weight: bold;
+}
+.imdb-card .card-text {
+  color: var(--muted-text);
+}
+
+/* Tombol */
+.btn-primary, .btn-warning {
+  background-color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+  color: var(--accent-text) !important;
+  font-weight: bold;
+}
+.btn-primary:hover, .btn-warning:hover {
+  background-color: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
+.btn-outline-warning {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+.btn-outline-warning:hover, .btn-outline-warning:focus {
+  color: var(--accent-text);
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25) !important;
+}
+.light-theme .btn-outline-warning.active {
+    color: var(--accent-text);
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+/* Search Bar */
+.search-bar {
+  background-color: var(--main-bg);
+  border: 1px solid var(--border-color);
+  color: var(--main-text);
+}
+.search-bar::placeholder {
+  color: var(--muted-text);
+}
+.search-bar:focus {
+  background-color: var(--secondary-bg);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25);
+  color: var(--main-text);
+}
