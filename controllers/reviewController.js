@@ -1,8 +1,8 @@
 const db = require('../config/db');
 
-// Submit Rating
-exports.submitRating = async (req, res) => {
-    const { book_id, rating } = req.body;
+// Tambahkan validasi input
+exports.submitReview = async (req, res) => {
+    const { book_id, rating, ulasan, reviewer_name, anonymous } = req.body;
     const user = req.session.user;
 
     if (!book_id || !rating) {
@@ -12,38 +12,14 @@ exports.submitRating = async (req, res) => {
 
     try {
         await db.query(
-            `INSERT INTO reviews (user_id, book_id, rating, ulasan, status, reviewer_name, anonymous)
+            `INSERT INTO reviews (user_id, book_id, rating, ulasan, reviewer_name, anonymous, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [user.id, book_id, rating, null, 'approved', user.nama, false]
+            [user.id, book_id, rating, ulasan || null, reviewer_name || user.nama, anonymous === 'true', 'approved']
         );
-        req.flash('success_msg', 'Rating berhasil dikirim.');
+
+        req.flash('success_msg', 'Rating/ulasan berhasil dikirim.');
     } catch (err) {
-        req.flash('error_msg', 'Gagal mengirim rating.');
-        console.error(err);
-    }
-
-    res.redirect(`/books/${book_id}`);
-};
-
-// Submit Komentar
-exports.submitReview = async (req, res) => {
-    const { book_id, ulasan, reviewer_name, anonymous } = req.body;
-    const user = req.session.user;
-
-    if (!book_id || !ulasan) {
-        req.flash('error_msg', 'Komentar harus diisi.');
-        return res.redirect(`/books/${book_id}`);
-    }
-
-    try {
-        await db.query(
-            `INSERT INTO reviews (user_id, book_id, rating, ulasan, status, reviewer_name, anonymous)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [user.id, book_id, null, ulasan, 'approved', reviewer_name || user.nama, anonymous === 'true']
-        );
-        req.flash('success_msg', 'Komentar berhasil dikirim.');
-    } catch (err) {
-        req.flash('error_msg', 'Gagal mengirim komentar.');
+        req.flash('error_msg', 'Gagal mengirim rating/ulasan.');
         console.error(err);
     }
 

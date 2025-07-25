@@ -1,25 +1,99 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Register</title>
-</head>
-<body>
-  <h2>Daftar Akun Baru</h2>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - AKSARARIA</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gradient-to-br from-blue-100 via-blue-200 to-blue-400 min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-blue-100">
+      <!-- Logo -->
+      <div class="flex justify-center mb-6">
+        <div class="bg-gradient-to-tr from-blue-400 to-blue-700 p-1 rounded-full">
+          <img
+            src="/images/aksararia.png"
+            alt="AKSARARIA Logo"
+            class="h-14 sm:h-20 w-auto object-contain rounded-full bg-white"
+          />
+        </div>
+      </div>
 
-  <% if (error_msg) { %>
-    <div style="color:red"><%= error_msg %></div>
-  <% } %>
+      <h2 class="text-2xl font-bold text-center text-blue-800 mb-6 tracking-wide">
+        Daftar <span class="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Akun Baru</span>
+      </h2>
 
-  <form action="/register" method="POST">
-    <label>Nama:</label>
-    <input type="text" name="nama" required><br><br>
-    <label>Email:</label>
-    <input type="email" name="email" required><br><br>
-    <label>Password:</label>
-    <input type="password" name="password" required><br><br>
-    <button type="submit">Daftar</button>
-  </form>
+      <!-- Form Register -->
+      <form action="/register" method="POST" class="space-y-5">
+        <!-- Nama -->
+        <div>
+          <label for="nama" class="block text-sm font-medium text-blue-700 mb-1">Nama</label>
+          <input
+            type="text"
+            name="nama"
+            id="nama"
+            required
+            class="mt-1 w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50"
+            placeholder="Nama lengkap"
+          />
+        </div>
 
-  <p>Sudah punya akun? <a href="/login">Login di sini</a></p>
-</body>
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-sm font-medium text-blue-700 mb-1">Email</label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            required
+            class="mt-1 w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50"
+            placeholder="Masukkan email"
+          />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="password" class="block text-sm font-medium text-blue-700 mb-1">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            required
+            class="mt-1 w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50"
+            placeholder="Buat password"
+          />
+        </div>
+
+        <!-- Flash Error Message -->
+        <% if (error_msg) { %>
+        <div class="text-red-700"><%= error_msg %></div>
+        <% } %>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="w-full bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow transition duration-200"
+        >
+          Daftar
+        </button>
+      </form>
+
+      <!-- Tombol Kembali ke Beranda -->
+      <a
+        href="/"
+        class="block mt-4 w-full bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-2 px-4 rounded-lg text-center transition duration-200 shadow-sm"
+      >
+        Kembali ke Beranda
+      </a>
+
+      <!-- Login -->
+      <p class="mt-4 text-center text-sm sm:text-base text-gray-600">
+        Sudah punya akun?
+        <a href="/login" class="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2"
+          >Login di sini</a
+        >
+      </p>
+    </div>
+  </body>
 </html>

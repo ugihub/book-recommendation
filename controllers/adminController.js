@@ -21,11 +21,11 @@ exports.approveBook = async (req, res) => {
     const submissionResult = await db.query('SELECT * FROM book_submissions WHERE id = $1', [submissionId]);
     const submission = submissionResult.rows[0];
 
-    // Pindahkan ke tabel `books`
+    // ✅ Pindahkan ke tabel `books` dengan semua kolom, termasuk link_baca_beli
     await db.query(
-      `INSERT INTO books (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, awards)
+      `INSERT INTO books (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, submitter_id) -- ✅ Tambahkan link_baca_beli
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [submission.judul, submission.penulis, submission.deskripsi, submission.genre, submission.tahun_terbit, submission.sampul_url, submission.link_baca_beli, submission.awards]
+      [submission.judul, submission.penulis, submission.deskripsi, submission.genre, submission.tahun_terbit, submission.sampul_url, submission.link_baca_beli, submission.submitter_id] // ✅ Tambahkan submission.link_baca_beli
     );
 
     // Update status submission
@@ -187,4 +187,86 @@ exports.deleteBook = async (req, res) => {
   }
 
   res.redirect('/admin/approved-books');
+};
+
+// Tampilkan daftar edit buku yang menunggu
+exports.getPendingEdits = async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT e.id, b.judul, e.judul AS edit_judul, e.penulis AS edit_penulis, e.status
+      FROM book_edits e
+      JOIN books b ON e.book_id = b.id
+      WHERE e.status = 'pending'
+    `);
+    res.render('adminPendingEdits', { edits: result.rows });
+  } catch (err) {
+    req.flash('error_msg', 'Gagal memuat daftar edit buku.');
+    res.redirect('/admin/pending-books');
+  }
+};
+
+// Setujui edit buku
+exports.approveBookEdit = async (req, res) => {
+  const editId = req.params.id;
+  try {
+    const editResult = await db.query('SELECT * FROM book_edits WHERE id = $1', [editId]);
+    const edit = editResult.rows[0];
+
+    // Update tabel `books` dengan perubahan
+    await db.query(
+      `UPDATE books SET 
+        judul = COALESCE($1, judul),
+        penulis = COALESCE($2, penulis),
+        genre = COALESCE($3, genre),
+        tahun_terbit = COALESCE($4, tahun_terbit),
+        deskripsi = COALESCE($5, deskripsi),
+        link_baca_beli = COALESCE($6, link_baca_beli),
+        sampul_url = COALESCE($7, sampul_url)
+      WHERE id = $8`,
+      [edit.judul, edit.penulis, edit.genre, edit.tahun_terbit, edit.deskripsi, edit.link_baca_beli, edit.sampul_url, edit.book_id]
+    );
+
+    // Update status edit
+    await db.query('UPDATE book_edits SET status = $1 WHERE id = $2', ['approved', editId]);
+
+    req.flash('success_msg', 'Perubahan buku berhasil disetujui.');
+  } catch (err) {
+    req.flash('error_msg', 'Gagal menyetujui perubahan buku.');
+    console.error(err);
+  }
+
+  res.redirect('/admin/book-edits');
+};
+
+// Hapus edit buku
+exports.rejectBookEdit = async (req, res) => {
+  const editId = req.params.id;
+  try {
+    await db.query('DELETE FROM book_edits WHERE id = $1', [editId]);
+    req.flash('success_msg', 'Perubahan buku berhasil ditolak.');
+  } catch (err) {
+    req.flash('error_msg', 'Gagal menolak perubahan buku.');
+    console.error(err);
+  }
+
+  res.redirect('/admin/book-edits');
+};
+
+exports.getMyBooks = async (req, res) => {
+  const userId = req.session.user.id;
+  try {
+    const result = await db.query(`
+      SELECT b.id, b.judul, b.penulis, b.genre, b.tahun_terbit, b.sampul_url, b.status, b.created_at,
+             (SELECT status FROM book_edits WHERE book_id = b.id AND submitter_id = $1 ORDER BY created_at DESC LIMIT 1) AS edit_status
+      FROM book_submissions b -- ✅ Ambil dari book_submissions
+      WHERE b.submitter_id = $1
+      ORDER BY b.created_at DESC
+    `, [userId]);
+
+    res.render('myBooks', { books: result.rows });
+  } catch (err) {
+    req.flash('error_msg', 'Gagal memuat daftar buku Anda.');
+    console.error(err);
+    res.redirect('/');
+  }
 };

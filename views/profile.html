@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profil - AKSARARIA</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Fungsi sederhana untuk mendapatkan inisial
+      function getUserInitials(nama) {
+        if (!nama) return "U";
+        const names = nama.trim().split(/\s+/);
+        let initials = names[0].charAt(0).toUpperCase();
+        if (names.length > 1) {
+          initials += names[names.length - 1].charAt(0).toUpperCase();
+        }
+        return initials;
+      }
+    </script>
+  </head>
+  <body class="bg-blue-50 text-gray-800 font-sans">
+    <!-- Sidebar Desktop -->
+    <div
+      id="desktop-sidebar"
+      class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg hidden md:block z-10 transition-all duration-300"
+    >
+      <!-- Logo -->
+      <div
+        id="sidebar-logo"
+        class="flex items-center justify-center h-16 border-b border-blue-200"
+      >
+        <img
+          src="/images/aksararia.png"
+          alt="AKSARARIA Logo"
+          class="h-12 object-contain"
+        />
+      </div>
+
+      <!-- Navigasi -->
+      <div id="sidebar-nav" class="p-4 space-y-4">
+        <a
+          href="/"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🏠 Beranda</a
+        >
+        <% if (session && session.user) { %>
+        <a
+          href="/profile"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >👤 Profil</a
+        >
+        <a
+          href="/logout"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🚪 Logout</a
+        >
+        <% if (session.user.role === 'admin') { %>
+        <a
+          href="/admin/pending-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🛠️ Admin Panel</a
+        >
+        <a
+          href="/admin/users"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >👥 Kelola Pengguna</a
+        >
+        <% } else if (session.user.role === 'member') { %>
+        <a
+          href="/books/submit-book"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📚 Submit Buku</a
+        >
+        <a
+          href="/books/my-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📖 Buku Saya</a
+        >
+        <% } %> <% } else { %>
+        <a
+          href="/login"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🔑 Login</a
+        >
+        <a
+          href="/register"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📝 Daftar</a
+        >
+        <% } %>
+      </div>
+
+      <!-- Tombol Toggle -->
+      <button
+        id="toggle-sidebar"
+        class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-blue-600 hover:text-blue-800 p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-all"
+      >
+        <svg
+          id="toggle-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            id="toggle-path"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Konten Utama -->
+    <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
+      <div class="max-w-4xl mx-auto">
+
+        <!-- Layout Flex untuk Card Profil & Reset Password -->
+        <div class="flex flex-col md:flex-row gap-6 mb-6">
+          <!-- Card Profil -->
+          <div
+            class="md:w-1/2 bg-white rounded-lg shadow-md p-6 sm:p-8 flex flex-col"
+          >
+            <div class="flex items-center mb-6">
+              <!-- Avatar dengan Inisial -->
+              <div
+                class="flex items-center justify-center w-16 h-16 rounded-full bg-blue-500 text-white text-xl font-bold mr-4"
+              >
+                <script>
+                  document.addEventListener("DOMContentLoaded", function () {
+                    const initialsElement =
+                      document.getElementById("user-initials");
+                    if (initialsElement) {
+                      initialsElement.textContent =
+                        getUserInitials("<%= user.nama %>");
+                    }
+                  });
+                </script>
+                <span id="user-initials"
+                  ><!-- Inisial akan diisi oleh JavaScript --></span
+                >
+              </div>
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-blue-800">
+                  Profil Pengguna
+                </h2>
+                <p class="text-gray-600">Informasi akun Anda</p>
+              </div>
+            </div>
+
+            <!-- Detail Akun -->
+            <div class="space-y-2 mb-6 flex-grow">
+              <p class="flex">
+                <span class="font-medium w-24 text-gray-700">Nama:</span>
+                <span><%= user.nama %></span>
+              </p>
+              <p class="flex">
+                <span class="font-medium w-24 text-gray-700">Email:</span>
+                <span><%= user.email %></span>
+              </p>
+              <p class="flex">
+                <span class="font-medium w-24 text-gray-700">Role:</span>
+                <span class="capitalize"><%= user.role %></span>
+              </p>
+              <p class="flex">
+                <span class="font-medium w-24 text-gray-700"
+                  >Tanggal Daftar:</span
+                >
+                <span
+                  ><%= new Date(user.created_at).toLocaleDateString('id-ID')
+                  %></span
+                >
+              </p>
+            </div>
+
+            <!-- Bagian Hapus Akun di dalam Card Profil -->
+            <div class="pt-4 border-t border-gray-200">
+              <h3 class="text-lg font-semibold text-red-700 mb-2">
+                Hapus Akun
+              </h3>
+              <p class="text-xs text-gray-500 mb-3">
+                ⚠️ Tindakan ini tidak dapat dibatalkan. Semua data akan dihapus
+                secara permanen.
+              </p>
+              <!-- Tombol Hapus yang Memicu Popup -->
+              <button
+                id="open-delete-modal"
+                class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 text-sm"
+              >
+                Hapus Akun Saya Secara Permanen
+              </button>
+            </div>
+          </div>
+
+          <!-- Card Reset Password -->
+          <div class="md:w-1/2 bg-white rounded-lg shadow-md p-6 sm:p-8">
+            <h3 class="text-lg font-semibold text-blue-700 mb-4">
+              Reset Password
+            </h3>
+            <form
+              action="/profile/reset-password"
+              method="POST"
+              class="space-y-4"
+            >
+              <div>
+                <label
+                  for="oldPassword"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >Password Lama</label
+                >
+                <input
+                  type="password"
+                  name="oldPassword"
+                  id="oldPassword"
+                  required
+                  class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholder="Masukkan password lama"
+                />
+              </div>
+              <div>
+                <label
+                  for="newPassword"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >Password Baru</label
+                >
+                <input
+                  type="password"
+                  name="newPassword"
+                  id="newPassword"
+                  required
+                  class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholder="Masukkan password baru"
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+              >
+                Reset Password
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup Modal Konfirmasi Hapus Akun -->
+    <div id="delete-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <!-- Overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div
+            id="modal-overlay"
+            class="absolute inset-0 bg-gray-500 opacity-75"
+          ></div>
+        </div>
+
+        <!-- Modal Box -->
+        <div
+          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+        >
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div
+                class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10"
+              >
+                <!-- Icon Peringatan -->
+                <svg
+                  class="h-6 w-6 text-red-600"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <h3
+                  class="text-lg leading-6 font-medium text-gray-900"
+                  id="modal-title"
+                >
+                  Konfirmasi Penghapusan Akun
+                </h3>
+                <div class="mt-2">
+                  <p class="text-sm text-gray-500">
+                    Anda akan menghapus akun Anda secara permanen.<br /><br />
+                    Tindakan ini akan:<br />
+                    • Menghapus profil dan semua data pribadi Anda.<br />
+                    • Menghapus semua buku yang Anda ajukan.<br />
+                    • Menghapus semua ulasan dan rating yang Anda berikan.<br /><br />
+                    <span class="font-semibold"
+                      >Data yang dihapus tidak akan bisa dipulihkan.</span
+                    ><br /><br />
+                    Apakah Anda yakin ingin melanjutkan?
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <!-- Form Hapus Akun di dalam Modal -->
+            <form
+              id="delete-account-form"
+              action="/profile/delete"
+              method="POST"
+              class="w-full sm:w-auto"
+            >
+              <button
+                type="submit"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Hapus Akun
+              </button>
+            </form>
+            <button
+              id="cancel-delete"
+              type="button"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Akhir Popup Modal -->
+
+    <!-- Sidebar Mobile & Script Toggle Sidebar (sama seperti sebelumnya) -->
+    <div
+      id="mobile-sidebar"
+      class="md:hidden fixed inset-0 z-50 bg-white w-64 shadow-lg transform -translate-x-full transition-transform duration-300"
+    >
+      <div
+        class="flex justify-between items-center p-4 border-b border-blue-200"
+      >
+        <h3 class="text-white font-bold text-lg">Navigasi</h3>
+        <button
+          id="close-mobile-sidebar"
+          class="text-gray-500 hover:text-gray-700 text-2xl"
+        >
+          &times;
+        </button>
+      </div>
+      <div class="p-4 space-y-4">
+        <a
+          href="/"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🏠 Beranda</a
+        >
+        <% if (session && session.user) { %>
+        <a
+          href="/profile"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >👤 Profil</a
+        >
+        <a
+          href="/logout"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🚪 Logout</a
+        >
+        <% if (session.user.role === 'admin') { %>
+        <a
+          href="/admin/pending-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🛠️ Admin Panel</a
+        >
+        <a
+          href="/admin/users"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >👥 Kelola Pengguna</a
+        >
+        <% } else if (session.user.role === 'member') { %>
+        <a
+          href="/books/submit-book"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📚 Submit Buku</a
+        >
+        <a
+          href="/books/my-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📖 Buku Saya</a
+        >
+        <% } %> <% } else { %>
+        <a
+          href="/login"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🔑 Login</a
+        >
+        <a
+          href="/register"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📝 Daftar</a
+        >
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Tombol Hamburger untuk Mobile -->
+    <button
+      id="mobile-menu-toggle"
+      class="md:hidden fixed bottom-4 right-4 z-40 bg-blue-500 text-white p-3 rounded-full shadow-md hover:shadow-lg"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 6h16M4 12h16M4 18h16"
+        />
+      </svg>
+    </button>
+
+    <!-- Script Toggle Sidebar -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // --- Script untuk Sidebar Mobile ---
+        const menuToggle = document.getElementById("mobile-menu-toggle");
+        const closeSidebar = document.getElementById("close-mobile-sidebar");
+        const mobileSidebar = document.getElementById("mobile-sidebar");
+
+        if (menuToggle && closeSidebar && mobileSidebar) {
+          menuToggle.addEventListener("click", () => {
+            mobileSidebar.classList.remove("-translate-x-full", "hidden");
+            mobileSidebar.classList.add("translate-x-0");
+          });
+
+          closeSidebar.addEventListener("click", () => {
+            mobileSidebar.classList.add("-translate-x-full");
+            mobileSidebar.classList.remove("translate-x-0");
+            setTimeout(() => {
+              mobileSidebar.classList.add("hidden");
+            }, 300);
+          });
+
+          // Tutup sidebar saat klik di luar
+          document.addEventListener("click", (e) => {
+            if (
+              !mobileSidebar.contains(e.target) &&
+              !e.target.closest("#mobile-menu-toggle")
+            ) {
+              mobileSidebar.classList.add("-translate-x-full");
+              mobileSidebar.classList.remove("translate-x-0");
+              setTimeout(() => {
+                mobileSidebar.classList.add("hidden");
+              }, 300);
+            }
+          });
+        } else {
+          console.warn("Elemen sidebar mobile tidak ditemukan.");
+        }
+
+        // --- Script untuk Sidebar Desktop (Minimize/Expand) ---
+        const toggleBtn = document.getElementById("toggle-sidebar");
+        const sidebar = document.getElementById("desktop-sidebar");
+        const mainContent = document.getElementById("main-content");
+        const sidebarLogo = document.getElementById("sidebar-logo");
+        const sidebarNav = document.getElementById("sidebar-nav");
+        const iconPath = document.getElementById("toggle-path");
+
+        if (
+          toggleBtn &&
+          sidebar &&
+          mainContent &&
+          sidebarLogo &&
+          sidebarNav &&
+          iconPath
+        ) {
+          let isCollapsed = false;
+
+          toggleBtn.addEventListener("click", () => {
+            isCollapsed = !isCollapsed;
+
+            if (isCollapsed) {
+              // Sidebar collapse
+              sidebar.classList.remove("w-64");
+              sidebar.classList.add("w-16");
+              mainContent.classList.remove("md:ml-64");
+              mainContent.classList.add("md:ml-16");
+
+              // Sembunyikan navigasi dan sesuaikan logo
+              sidebarNav.classList.add("hidden");
+              sidebarLogo.classList.add(
+                "h-16",
+                "justify-center",
+                "items-center"
+              );
+
+              // Ubah ikon toggle
+              iconPath.setAttribute("d", "M9 5l7 7-7 7");
+            } else {
+              // Sidebar expand
+              sidebar.classList.remove("w-16");
+              sidebar.classList.add("w-64");
+              mainContent.classList.remove("md:ml-16");
+              mainContent.classList.add("md:ml-64");
+
+              // Tampilkan navigasi dan sesuaikan logo
+              sidebarNav.classList.remove("hidden");
+              sidebarLogo.classList.remove(
+                "h-16",
+                "justify-center",
+                "items-center"
+              );
+
+              // Ubah ikon toggle
+              iconPath.setAttribute("d", "M15 19l-7-7 7-7");
+            }
+          });
+        } else {
+          console.warn("Elemen sidebar desktop atau toggle tidak ditemukan.");
+        }
+
+        // --- Script untuk Modal Hapus Akun ---
+        const openModalBtn = document.getElementById("open-delete-modal");
+        const modal = document.getElementById("delete-modal");
+        const closeModalBtn = document.getElementById("cancel-delete");
+        const modalOverlay = document.getElementById("modal-overlay");
+        const deleteForm = document.getElementById("delete-account-form");
+
+        if (
+          openModalBtn &&
+          modal &&
+          closeModalBtn &&
+          modalOverlay &&
+          deleteForm
+        ) {
+          // Fungsi untuk membuka modal
+          function openModal() {
+            modal.classList.remove("hidden");
+          }
+
+          // Fungsi untuk menutup modal
+          function closeModal() {
+            modal.classList.add("hidden");
+          }
+
+          // Event listener untuk membuka modal
+          openModalBtn.addEventListener("click", openModal);
+
+          // Event listener untuk menutup modal (tombol batal)
+          closeModalBtn.addEventListener("click", closeModal);
+
+          // Event listener untuk menutup modal (klik overlay)
+          modalOverlay.addEventListener("click", closeModal);
+
+          // Opsional: Tutup modal dengan tombol Escape
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+              closeModal();
+            }
+          });
+        } else {
+          console.warn("Elemen modal atau tombol terkait tidak ditemukan.");
+        }
+      });
+    </script>
+  </body>
+</html>

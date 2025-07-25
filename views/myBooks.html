@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Panel - AKSARARIA</title>
+    <title>Buku Saya - AKSARARIA</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
@@ -28,35 +28,55 @@
       <!-- Navigasi -->
       <div id="sidebar-nav" class="p-4 space-y-4">
         <a
+          href="/"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🏠 Beranda</a
+        >
+        <% if (session && session.user) { %>
+        <a
+          href="/profile"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >👤 Profil</a
+        >
+        <a
+          href="/logout"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🚪 Logout</a
+        >
+        <% if (session.user.role === 'admin') { %>
+        <a
           href="/admin/pending-books"
           class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >📥 Buku Menunggu</a
-        >
-        <a
-          href="/admin/book-edits"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >✏️ Edit Buku Menunggu</a
-        >
-        <a
-          href="/admin/approved-books"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >✅ Buku Disetujui</a
+          >🛠️ Admin Panel</a
         >
         <a
           href="/admin/users"
           class="block text-blue-600 hover:text-blue-800 font-semibold"
           >👥 Kelola Pengguna</a
         >
+        <% } else if (session.user.role === 'member') { %>
         <a
-          href="/"
+          href="/books/submit-book"
           class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🏠 Beranda</a
+          >📚 Submit Buku</a
         >
         <a
-          href="/logout"
-          class="block text-red-600 hover:text-red-800 font-semibold"
-          >🚪 Logout</a
+          href="/books/my-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📖 Buku Saya</a
         >
+        <% } %> <% } else { %>
+        <a
+          href="/login"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🔑 Login</a
+        >
+        <a
+          href="/register"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📝 Daftar</a
+        >
+        <% } %>
       </div>
 
       <!-- Tombol Toggle -->
@@ -86,9 +106,11 @@
     <!-- Konten Utama -->
     <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
       <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
-        <h1 class="text-2xl font-bold text-blue-800 mb-6">
-          Admin Panel - Buku Menunggu Persetujuan
-        </h1>
+        <h2
+          class="text-xl sm:text-2xl font-bold text-center text-blue-800 mb-6"
+        >
+          📖 Buku Saya
+        </h2>
 
         <!-- Flash Messages -->
         <% if (success_msg) { %>
@@ -101,99 +123,109 @@
         </div>
         <% } %>
 
-        <!-- Daftar Buku Menunggu -->
-        <% if (submissions && submissions.length > 0) { %>
-        <p class="text-gray-600 mb-4">
-          Menampilkan <%= submissions.length %> buku menunggu persetujuan.
-        </p>
-        <div class="space-y-6">
-          <% submissions.forEach(submission => { %>
-          <div
-            class="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4"
-          >
-            <h3 class="text-lg font-semibold text-blue-700 mb-2">
-              <%= submission.judul %>
-            </h3>
-            <p class="text-sm text-gray-600 mb-1">
-              <strong>Penulis:</strong> <%= submission.penulis %>
-            </p>
-            <p class="text-sm text-gray-600 mb-1">
-              <strong>Genre:</strong> <%= submission.genre || 'Tidak ada genre'
+        <!-- Daftar Buku -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white rounded-lg shadow text-sm">
+            <thead class="bg-blue-100">
+              <tr>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  Judul
+                </th>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  Penulis
+                </th>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  Status
+                </th>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  Tanggal Pengajuan
+                </th>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  Status Edit
+                </th>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (books && books.length > 0) { %> <% books.forEach(book => {
               %>
-            </p>
-            <p class="text-sm text-gray-600 mb-1">
-              <strong>Tahun Terbit:</strong> <%= submission.tahun_terbit ||
-              'Tidak diketahui' %>
-            </p>
-            <p class="text-sm text-gray-600 mb-2">
-              <strong>Link Baca/Beli:</strong>
-              <% if (submission.link_baca_beli) { %>
-              <a
-                href="<%= submission.link_baca_beli %>"
-                target="_blank"
-                class="text-blue-600 hover:text-blue-800 font-semibold"
-                >Klik di sini</a
-              >
-              <% } else { %> Tidak tersedia <% } %>
-            </p>
-
-            <!-- Sampul -->
-            <% if (submission.sampul_url) { %>
-            <img
-              src="<%= submission.sampul_url %>"
-              alt="Sampul <%= submission.judul %>"
-              class="w-full h-40 object-cover rounded mb-4"
-            />
-            <% } else { %>
-            <div
-              class="w-full h-40 bg-gray-200 rounded mb-4 flex items-center justify-center text-gray-500"
-            >
-              Sampul Tidak Tersedia
-            </div>
-            <% } %>
-
-            <!-- Tombol Approve/Reject/Hapus -->
-            <div class="flex flex-wrap gap-2 mt-4">
-              <form
-                action="/admin/approve-book/<%= submission.id %>"
-                method="POST"
-              >
-                <button
-                  type="submit"
-                  class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-                >
-                  Approve
-                </button>
-              </form>
-              <form
-                action="/admin/reject-book/<%= submission.id %>"
-                method="POST"
-              >
-                <button
-                  type="submit"
-                  class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-                >
-                  Reject
-                </button>
-              </form>
-              <form
-                action="/admin/delete-book/<%= submission.id %>"
-                method="POST"
-              >
-                <button
-                  type="submit"
-                  class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-                >
-                  Hapus Buku
-                </button>
-              </form>
-            </div>
-          </div>
-          <% }) %>
+              <tr class="border-b last:border-b-0 hover:bg-blue-50">
+                <td class="py-2 px-4 font-medium text-blue-700">
+                  <%= book.judul %>
+                </td>
+                <td class="py-2 px-4"><%= book.penulis %></td>
+                <td class="py-2 px-4">
+                  <% if (book.status === 'pending') { %>
+                  <span
+                    class="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold"
+                    >Menunggu Persetujuan</span
+                  >
+                  <% } else if (book.status === 'approved') { %>
+                  <span
+                    class="inline-block px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold"
+                    >Disetujui</span
+                  >
+                  <% } else { %>
+                  <span
+                    class="inline-block px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold"
+                    >Ditolak</span
+                  >
+                  <% } %>
+                </td>
+                <td class="py-2 px-4">
+                  <%= new Date(book.created_at).toLocaleDateString('id-ID') %>
+                </td>
+                <td class="py-2 px-4">
+                  <% if (book.edit_status === 'pending') { %>
+                  <span
+                    class="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold"
+                    >Menunggu Persetujuan</span
+                  >
+                  <% } else if (book.edit_status === 'approved') { %>
+                  <span
+                    class="inline-block px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold"
+                    >Perubahan Disetujui</span
+                  >
+                  <% } else { %>
+                  <span
+                    class="inline-block px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs font-semibold"
+                    >Belum Ada Edit</span
+                  >
+                  <% } %>
+                </td>
+                <td class="py-2 px-4">
+                  <% if (book.edit_status !== 'pending') { %>
+                  <a
+                    href="/books/edit/<%= book.id %>"
+                    class="text-blue-600 hover:text-blue-800 font-semibold text-sm"
+                    >Edit</a
+                  >
+                  <% } else { %>
+                  <em class="text-gray-400 text-sm"
+                    >Edit menunggu persetujuan</em
+                  >
+                  <% } %>
+                </td>
+              </tr>
+              <% }) %> <% } else { %>
+              <tr>
+                <td colspan="6" class="py-4 text-center text-gray-500">
+                  Belum ada buku yang diajukan.
+                </td>
+              </tr>
+              <% } %>
+            </tbody>
+          </table>
         </div>
-        <% } else { %>
-        <p class="text-gray-600">Tidak ada buku menunggu persetujuan.</p>
-        <% } %>
+
+        <!-- Kembali ke Beranda -->
+        <div class="mt-8 text-center">
+          <a href="/" class="text-blue-500 hover:text-blue-700 font-semibold">
+            &larr; Kembali ke Beranda
+          </a>
+        </div>
       </div>
     </div>
 
@@ -219,35 +251,55 @@
       </div>
       <div class="p-4 space-y-4">
         <a
+          href="/"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🏠 Beranda</a
+        >
+        <% if (session && session.user) { %>
+        <a
+          href="/profile"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >👤 Profil</a
+        >
+        <a
+          href="/logout"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🚪 Logout</a
+        >
+        <% if (session.user.role === 'admin') { %>
+        <a
           href="/admin/pending-books"
           class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >📥 Buku Menunggu</a
-        >
-        <a
-          href="/admin/book-edits"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >✏️ Edit Buku Menunggu</a
-        >
-        <a
-          href="/admin/approved-books"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >✅ Buku Disetujui</a
+          >🛠️ Admin Panel</a
         >
         <a
           href="/admin/users"
           class="block text-blue-600 hover:text-blue-800 font-semibold"
           >👥 Kelola Pengguna</a
         >
+        <% } else if (session.user.role === 'member') { %>
         <a
-          href="/"
+          href="/books/submit-book"
           class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🏠 Beranda</a
+          >📚 Submit Buku</a
         >
         <a
-          href="/logout"
-          class="block text-red-600 hover:text-red-800 font-semibold"
-          >🚪 Logout</a
+          href="/books/my-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📖 Buku Saya</a
         >
+        <% } %> <% } else { %>
+        <a
+          href="/login"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🔑 Login</a
+        >
+        <a
+          href="/register"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📝 Daftar</a
+        >
+        <% } %>
       </div>
     </div>
 

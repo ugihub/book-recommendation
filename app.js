@@ -98,12 +98,16 @@ app.use(express.static('public'));
 // Routes
 app.use('/', adminRoutes); // ✅ Pastikan route ini ada
 app.use('/', indexRoute);
-const bookRoutes = require('./routes/bookRoutes')(upload); // Kirim upload ke route
-app.use('/books', bookRoutes);
 app.use('/', authRoutes);
 app.use('/', reviewRoutes);
 app.use('/reviews', authMiddleware.ensureAuthenticated, reviewRoutes);
 app.use('/admin', authMiddleware.ensureRole('admin'), adminRoutes);
+
+const bookRoutes = require('./routes/bookRoutes')(upload); // Kirim upload ke route
+app.use('/books', bookRoutes);
+
+const profileRoutes = require('./routes/profileRoutes');
+app.use('/', profileRoutes);
 
 app.listen(process.env.PORT, () => {
     console.log(`Server running on http://localhost:${process.env.PORT}`);

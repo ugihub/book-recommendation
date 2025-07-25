@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel - Kelola Pengguna | AKSARARIA</title>
+  <title>Admin - Edit Buku Menunggu | AKSARARIA</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -36,7 +36,7 @@
   <!-- Konten Utama -->
   <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
     <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
-      <h1 class="text-2xl font-bold text-blue-800 mb-6">Admin Panel - Kelola Pengguna</h1>
+      <h1 class="text-2xl font-bold text-blue-800 mb-6">Admin Panel - Edit Buku Menunggu Persetujuan</h1>
 
       <!-- Flash Messages -->
       <% if (success_msg) { %>
@@ -50,126 +50,77 @@
         </div>
       <% } %>
 
-      <!-- Daftar Pengguna -->
+      <!-- Daftar Edit Buku Menunggu -->
       <div class="overflow-x-auto">
         <table class="min-w-full bg-white rounded-lg shadow text-sm">
           <thead class="bg-blue-100">
             <tr>
               <th class="py-3 px-4 text-left font-semibold text-blue-800">ID</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Nama</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Email</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Role</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-800">Judul Buku</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-800">Perubahan</th>
               <th class="py-3 px-4 text-left font-semibold text-blue-800">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            <% if (users && users.length > 0) { %>
-              <% users.forEach(user => { %>
+            <% if (edits && edits.length > 0) { %>
+              <% edits.forEach(edit => { %>
                 <tr class="border-b last:border-b-0 hover:bg-blue-50">
-                  <td class="py-2 px-4"><%= user.id %></td>
-                  <td class="py-2 px-4"><%= user.nama %></td>
-                  <td class="py-2 px-4"><%= user.email %></td>
-                  <td class="py-2 px-4 capitalize"><%= user.role %></td>
+                  <td class="py-2 px-4"><%= edit.id %></td>
+                  <td class="py-2 px-4"><%= edit.judul %></td>
                   <td class="py-2 px-4">
-                    <% if (user.role === 'user') { %>
-                      <form action="/admin/users/promote/<%= user.id %>" method="POST">
-                        <button 
-                          type="submit" 
-                          class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition duration-200 text-sm"
-                        >
-                          Jadikan Member
-                        </button>
-                      </form>
-                    <% } else { %>
-                      <em class="text-gray-500">Tidak bisa diubah</em>
-                    <% } %>
+                    <ul class="space-y-1">
+                      <% if (edit.edit_judul) { %>
+                        <li><strong>Judul:</strong> <%= edit.edit_judul %></li>
+                      <% } %>
+                      <% if (edit.edit_penulis) { %>
+                        <li><strong>Penulis:</strong> <%= edit.edit_penulis %></li>
+                      <% } %>
+                      <% if (edit.genre) { %>
+                        <li><strong>Genre:</strong> <%= edit.genre %></li>
+                      <% } %>
+                      <% if (edit.tahun_terbit) { %>
+                        <li><strong>Tahun Terbit:</strong> <%= edit.tahun_terbit %></li>
+                      <% } %>
+                      <% if (edit.sampul_url) { %>
+                        <li>
+                          <strong>Sampul:</strong>
+                          <img src="<%= edit.sampul_url %>" alt="Sampul <%= edit.judul %>" class="w-24 h-32 object-cover rounded mt-1" />
+                        </li>
+                      <% } %>
+                    </ul>
+                  </td>
+                  <td class="py-2 px-4 space-y-2">
+                    <form action="/admin/approve-edit/<%= edit.id %>" method="POST">
+                      <button 
+                        type="submit" 
+                        class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+                      >
+                        Setujui
+                      </button>
+                    </form>
+                    <form action="/admin/reject-edit/<%= edit.id %>" method="POST">
+                      <button 
+                        type="submit" 
+                        class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+                      >
+                        Tolak
+                      </button>
+                    </form>
                   </td>
                 </tr>
               <% }) %>
             <% } else { %>
               <tr>
-                <td colspan="5" class="py-4 text-center text-gray-500">Tidak ada pengguna yang ditemukan.</td>
+                <td colspan="4" class="py-4 text-center text-gray-500">Tidak ada edit buku yang menunggu.</td>
               </tr>
             <% } %>
           </tbody>
         </table>
       </div>
 
-      <!-- Daftar Member -->
-      <h2 class="text-xl font-semibold text-blue-800 mt-10 mb-4">Admin Panel - Kelola Member</h2>
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded-lg shadow text-sm">
-          <thead class="bg-blue-100">
-            <tr>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">ID</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Nama</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Email</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Role</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Suspended Until</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Reason</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (users && users.length > 0) { %>
-              <% users.forEach(user => { %>
-                <tr class="border-b last:border-b-0 hover:bg-blue-50">
-                  <td class="py-2 px-4"><%= user.id %></td>
-                  <td class="py-2 px-4"><%= user.nama %></td>
-                  <td class="py-2 px-4"><%= user.email %></td>
-                  <td class="py-2 px-4 capitalize"><%= user.role %></td>
-                  <td class="py-2 px-4">
-                    <%= user.suspended_until ? new Date(user.suspended_until).toLocaleString() : 'Tidak ditangguhkan' %>
-                  </td>
-                  <td class="py-2 px-4"><%= user.suspension_reason || '-' %></td>
-                  <td class="py-2 px-4">
-                    <% if (user.role === 'member') { %>
-                      <div class="space-y-2">
-                        <!-- Form Suspend -->
-                        <form action="/admin/suspend-member/<%= user.id %>" method="POST" class="flex flex-wrap gap-2">
-                          <input 
-                            type="number" 
-                            name="duration" 
-                            placeholder="Durasi (jam)" 
-                            required 
-                            class="w-full sm:w-auto px-2 py-1 border border-blue-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                          />
-                          <input 
-                            type="text" 
-                            name="reason" 
-                            placeholder="Alasan sanksi" 
-                            required 
-                            class="w-full sm:w-auto px-2 py-1 border border-blue-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                          />
-                          <button 
-                            type="submit" 
-                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded transition duration-200 text-sm"
-                          >
-                            Suspend
-                          </button>
-                        </form>
-
-                        <!-- Form Demote -->
-                        <form action="/admin/demote-member/<%= user.id %>" method="POST">
-                          <button 
-                            type="submit" 
-                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition duration-200 text-sm"
-                          >
-                            Turunkan ke User
-                          </button>
-                        </form>
-                      </div>
-                    <% } %>
-                  </td>
-                </tr>
-              <% }) %>
-            <% } else { %>
-              <tr>
-                <td colspan="7" class="py-4 text-center text-gray-500">Tidak ada member yang ditemukan.</td>
-              </tr>
-            <% } %>
-          </tbody>
-        </table>
+      <!-- Kembali ke Admin Panel -->
+      <div class="mt-8 text-center">
+        <a href="/admin/pending-books" class="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2">&larr; Kembali ke Admin Panel</a>
       </div>
     </div>
   </div>

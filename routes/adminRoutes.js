@@ -19,4 +19,9 @@ router.post('/admin/users/promote/:id', ensureAuthenticated, ensureRole('admin')
 router.post('/suspend-member/:id', ensureAuthenticated, ensureRole('admin'), adminController.suspendMember);
 router.post('/demote-member/:id', ensureAuthenticated, ensureRole('admin'), adminController.demoteMember);
 
+// Routes edit
+router.get('/book-edits', ensureAuthenticated, ensureRole('admin'), adminController.getPendingEdits);
+router.post('/approve-edit/:id', ensureAuthenticated, ensureRole('admin'), adminController.approveBookEdit);
+router.post('/reject-edit/:id', ensureAuthenticated, ensureRole('admin'), adminController.rejectBookEdit);
+
 module.exports = router;
