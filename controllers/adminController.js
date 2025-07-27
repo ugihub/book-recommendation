@@ -176,7 +176,7 @@ exports.deleteBook = async (req, res) => {
 exports.getPendingEdits = async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT e.*, b.judul, b.penulis, b.sampul_url, u.nama AS submitter_name
+      SELECT e.*, b.judul, b.penulis, b.sampul_url, b.awards AS book_awards, e.awards AS edit_awards, u.nama AS submitter_name
       FROM book_edits e
       JOIN books b ON e.book_id = b.id
       JOIN users u ON e.submitter_id = u.id
@@ -184,23 +184,12 @@ exports.getPendingEdits = async (req, res) => {
       ORDER BY e.created_at DESC
     `);
 
-    console.log('Jumlah permintaan edit:', result.rows.length);
-    console.log('Contoh data edit:', result.rows[0] ? {
-      id: result.rows[0].id,
-      judul: result.rows[0].judul,
-      edit_judul: result.rows[0].edit_judul
-    } : 'Tidak ada data');
-
     res.render('adminPendingEdits', {
       title: 'Admin Panel - Permintaan Edit Buku',
       edits: result.rows
     });
   } catch (err) {
-    console.error('Error fetching pending edits:', {
-      message: err.message,
-      stack: err.stack
-    });
-
+    console.error('Error fetching pending edits:', err);
     req.flash('error_msg', 'Gagal memuat daftar edit buku.');
     res.redirect('/admin');
   }
@@ -209,30 +198,84 @@ exports.getPendingEdits = async (req, res) => {
 // Setujui edit buku
 exports.approveBookEdit = async (req, res) => {
   const editId = req.params.id;
+  const adminId = req.session.user.id;
+
   try {
     const editResult = await db.query('SELECT * FROM book_edits WHERE id = $1', [editId]);
     const edit = editResult.rows[0];
 
-    // Update tabel `books` dengan perubahan
-    await db.query(
-      `UPDATE books SET 
-        judul = COALESCE($1, judul),
-        penulis = COALESCE($2, penulis),
-        genre = COALESCE($3, genre),
-        tahun_terbit = COALESCE($4, tahun_terbit),
-        deskripsi = COALESCE($5, deskripsi),
-        link_baca_beli = COALESCE($6, link_baca_beli),
-        sampul_url = COALESCE($7, sampul_url)
-      WHERE id = $8`,
-      [edit.judul, edit.penulis, edit.genre, edit.tahun_terbit, edit.deskripsi, edit.link_baca_beli, edit.sampul_url, edit.book_id]
-    );
+    // Update tabel books dengan semua kolom termasuk awards
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (edit.edit_judul) {
+      updates.push(`judul = $${paramCount}`);
+      values.push(edit.edit_judul);
+      paramCount++;
+    }
+
+    if (edit.edit_penulis) {
+      updates.push(`penulis = $${paramCount}`);
+      values.push(edit.edit_penulis);
+      paramCount++;
+    }
+
+    if (edit.sampul_url) {
+      updates.push(`sampul_url = $${paramCount}`);
+      values.push(edit.sampul_url);
+      paramCount++;
+    }
+
+    if (edit.genre) {
+      updates.push(`genre = $${paramCount}`);
+      values.push(edit.genre);
+      paramCount++;
+    }
+
+    if (edit.tahun_terbit) {
+      updates.push(`tahun_terbit = $${paramCount}`);
+      values.push(edit.tahun_terbit);
+      paramCount++;
+    }
+
+    if (edit.deskripsi) {
+      updates.push(`deskripsi = $${paramCount}`);
+      values.push(edit.deskripsi);
+      paramCount++;
+    }
+
+    if (edit.link_baca_beli) {
+      updates.push(`link_baca_beli = $${paramCount}`);
+      values.push(edit.link_baca_beli);
+      paramCount++;
+    }
+
+    // Tambahkan awards ke updates
+    if (edit.awards) {
+      updates.push(`awards = $${paramCount}`);
+      values.push(edit.awards);
+      paramCount++;
+    }
+
+    values.push(edit.book_id);
+
+    if (updates.length > 0) {
+      await db.query(
+        `UPDATE books SET ${updates.join(', ')} WHERE id = $${paramCount}`,
+        values
+      );
+    }
 
     // Update status edit
-    await db.query('UPDATE book_edits SET status = $1 WHERE id = $2', ['approved', editId]);
+    await db.query(
+      `UPDATE book_edits SET status = $1, approved_by = $2 WHERE id = $3`,
+      ['approved', adminId, editId]
+    );
 
-    req.flash('success_msg', 'Perubahan buku berhasil disetujui.');
+    req.flash('success_msg', 'Permintaan edit berhasil disetujui.');
   } catch (err) {
-    req.flash('error_msg', 'Gagal menyetujui perubahan buku.');
+    req.flash('error_msg', 'Gagal menyetujui permintaan edit.');
     console.error(err);
   }
 
