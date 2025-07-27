@@ -6,7 +6,7 @@ module.exports = function (upload) {
   const uploadMiddleware = require('../middleware/uploadMiddleware');
 
   router.get('/submit-book', ensureAuthenticated, ensureRole('member'), bookController.getSubmitBook);
-  router.post('/submit', ensureAuthenticated, ensureRole('member'), ensureDailyBookLimit, upload.single('sampul'), bookController.postSubmitBook);
+  router.post('/submit-book', ensureAuthenticated, ensureRole('member'), ensureDailyBookLimit, upload.single('sampul'), bookController.postSubmitBook);
 
   // Tampilkan buku yang disetujui oleh member
   router.get('/my-books', ensureAuthenticated, ensureRole('member'), bookController.getMyApprovedBooks);
