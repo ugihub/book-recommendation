@@ -200,12 +200,7 @@ exports.getPendingEdits = async (req, res) => {
       WHERE e.status = 'pending'
       ORDER BY e.created_at DESC
     `);
-
-    // Perbaikan: Sesuaikan nama view dengan struktur folder
-    res.render('editBook', {
-      title: 'Admin Panel - Permintaan Edit Buku',
-      edits: result.rows
-    });
+    
   } catch (err) {
     console.error('Error fetching pending edits:', err);
     req.flash('error_msg', 'Gagal memuat daftar permintaan edit.');
