@@ -1,14 +1,32 @@
 const { Pool } = require('pg');
-require('dotenv').config();
+
+// Periksa apakah kita berada di lingkungan Railway
+const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT !== undefined;
 
 const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
+
+// Tambahkan event listener untuk error koneksi
+pool.on('error', (err, client) => {
+    console.error('Kesalahan koneksi database:', err);
+});
+
+// Fungsi untuk inisialisasi database (opsional)
+const initDB = async () => {
+    try {
+        console.log('Koneksi database berhasil');
+    } catch (err) {
+        console.error('Gagal menginisialisasi database:', err);
+        throw err;
+    }
+};
 
 module.exports = {
     query: (text, params) => pool.query(text, params),
+    pool,
+    initDB
 };

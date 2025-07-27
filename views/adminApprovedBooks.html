@@ -2,84 +2,265 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel - Buku Disetujui</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Buku Disetujui | AKSARARIA</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f7ff',
+              100: '#e0f0ff',
+              200: '#c2e0ff',
+              300: '#99ccff',
+              400: '#66b2ff',
+              500: '#0066cc',
+              600: '#0052a3',
+              700: '#003d7a',
+              800: '#002952',
+              900: '#001a33'
+            }
+          },
+          transitionProperty: {
+            'sidebar': 'width, margin'
+          }
+        }
+      }
     }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
-    }
-    .action-form {
-      margin: 0;
-    }
-    .flash-message {
-      padding: 10px;
-      margin-bottom: 20px;
-      border-radius: 5px;
-    }
-    .success {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    .error {
-      background-color: #f8d7da;
-      color: #721c24;
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .sidebar-item {
+        @apply flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200;
+      }
+      .sidebar-item:hover {
+        @apply bg-primary-50 text-primary-700;
+      }
+      .sidebar-item.active {
+        @apply bg-primary-100 text-primary-800 font-medium shadow-inner;
+      }
+      .table-header {
+        @apply py-3 px-5 text-left font-semibold text-primary-700 uppercase text-xs tracking-wider;
+      }
+      .table-row {
+        @apply border-b border-primary-50 hover:bg-primary-50 transition-colors duration-200;
+      }
+      .table-cell {
+        @apply py-4 px-5 text-primary-800;
+      }
+      .action-button {
+        @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+      }
+      .delete-btn {
+        @apply bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-300;
+      }
+      .back-link {
+        @apply inline-flex items-center text-primary-600 hover:text-primary-800 transition-colors duration-200;
+      }
+      .back-link:hover {
+        @apply underline;
+      }
+      .flash-message {
+        @apply p-4 rounded-xl mb-6 max-w-4xl mx-auto shadow-md;
+      }
+      .success {
+        @apply bg-emerald-50 text-emerald-700;
+      }
+      .error {
+        @apply bg-rose-50 text-rose-700;
+      }
+      .card {
+        @apply bg-white rounded-xl shadow-md overflow-hidden transition-shadow duration-300;
+      }
+      .card:hover {
+        @apply shadow-lg;
+      }
     }
   </style>
 </head>
-<body>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="flex flex-col w-64 bg-white border-r border-gray-200 shadow-sm z-30 transition-all duration-300 ease-in-out">
+      <div class="flex items-center justify-center h-20 border-b border-primary-100 bg-primary-50">
+        <div class="flex items-center space-x-2">
+          <div class="bg-primary-600 w-10 h-10 rounded-lg flex items-center justify-center">
+            <span class="text-white font-bold text-xl">A</span>
+          </div>
+          <span class="font-bold text-xl text-primary-700 hidden md:block">AKSARARIA</span>
+        </div>
+      </div>
+      
+      <nav class="flex-1 p-4">
+        <ul class="space-y-1">
+          <li>
+            <a href="/admin/pending-books" class="sidebar-item">
+              <span class="text-xl">⏳</span>
+              <span>Buku Menunggu</span>
+            </a>
+          </li>
+          <li>
+            <a href="/admin/approved-books" class="sidebar-item active">
+              <span class="text-xl">✅</span>
+              <span>Buku Disetujui</span>
+            </a>
+          </li>
+          <li>
+            <a href="/admin/users" class="sidebar-item">
+              <span class="text-xl">👥</span>
+              <span>Kelola Pengguna</span>
+            </a>
+          </li>
+          <li class="mt-8 pt-4 border-t border-primary-50">
+            <a href="/" class="sidebar-item">
+              <span class="text-xl">🏠</span>
+              <span>Beranda</span>
+            </a>
+          </li>
+          <li>
+            <a href="/logout" class="sidebar-item">
+              <span class="text-xl">🚪</span>
+              <span>Logout</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
 
-  <!-- Flash Messages -->
-  <% if (success_msg) { %>
-    <div class="flash-message success"><%= success_msg %></div>
-  <% } %>
-  <% if (error_msg) { %>
-    <div class="flash-message error"><%= error_msg %></div>
-  <% } %>
+    <!-- Main Content -->
+    <main class="flex-1 bg-gray-50">
+      <div class="p-6 md:ml-64">
+        <!-- Header -->
+        <div class="mb-8">
+          <h1 class="text-2xl md:text-3xl font-bold text-primary-900 mb-2">Buku Disetujui</h1>
+          <p class="text-gray-600">Kelola dan pantau buku-buku yang telah disetujui dalam sistem</p>
+        </div>
 
-  <h1>Admin Panel - Buku Disetujui</h1>
+        <!-- Flash Messages -->
+        <% if (success_msg) { %>
+          <div class="flash-message success">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              <%= success_msg %>
+            </div>
+          </div>
+        <% } %>
+        
+        <% if (error_msg) { %>
+          <div class="flash-message error">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+              <%= error_msg %>
+            </div>
+          </div>
+        <% } %>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Judul</th>
-        <th>Penulis</th>
-        <th>Genre</th>
-        <th>Tahun Terbit</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody>
-<% if (books && books.length > 0) { %>
-  <% books.forEach(book => { %>
-    <tr>
-      <td><%= book.id %></td>
-      <td><%= book.judul %></td>
-      <td><%= book.penulis %></td>
-      <td><%= book.genre || 'Tidak ada genre' %></td>
-      <td><%= book.tahun_terbit || 'Tidak diketahui' %></td>
-      <td>
-        <form action="/admin/delete-book/<%= book.id %>" method="POST">
-          <button type="submit">Hapus</button>
-        </form>
-      </td>
-    </tr>
-  <% }) %>
-<% } else { %>
-  <p>Tidak ada buku yang disetujui.</p>
-<% } %>
-    </tbody>
-  </table>
+        <!-- Content Card -->
+        <div class="card">
+          <div class="p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+              <h2 class="text-xl font-semibold text-primary-800 mb-4 md:mb-0">Daftar Buku Disetujui</h2>
+              <div class="flex space-x-3">
+                <a href="/admin/pending-books" class="back-link">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                  </svg>
+                  Buku Menunggu Persetujuan
+                </a>
+              </div>
+            </div>
 
-  <p><a href="/admin/pending-books">Kembali ke Buku Menunggu Persetujuan</a></p>
+            <div class="overflow-x-auto rounded-xl">
+              <table class="min-w-full">
+                <thead>
+                  <tr class="bg-primary-50">
+                    <th class="table-header w-16">ID</th>
+                    <th class="table-header">Judul</th>
+                    <th class="table-header">Penulis</th>
+                    <th class="table-header">Genre</th>
+                    <th class="table-header">Tahun Terbit</th>
+                    <th class="table-header text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (books && books.length > 0) { %>
+                    <% books.forEach(book => { %>
+                      <tr class="table-row">
+                        <td class="table-cell font-medium text-primary-600"><%= book.id %></td>
+                        <td class="table-cell font-medium"><%= book.judul %></td>
+                        <td class="table-cell"><%= book.penulis %></td>
+                        <td class="table-cell"><%= book.genre || '<span class="text-gray-400">Tidak ada genre</span>' %></td>
+                        <td class="table-cell"><%= book.tahun_terbit || '<span class="text-gray-400">Tidak diketahui</span>' %></td>
+                        <td class="table-cell text-right">
+                          <form action="/admin/delete-book/<%= book.id %>" method="POST" class="inline">
+                            <button type="submit" class="action-button delete-btn">
+                              <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                              </svg>
+                              Hapus
+                            </button>
+                          </form>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="6" class="py-10 text-center text-gray-500 bg-gray-50 rounded-b-xl">
+                        <div class="flex flex-col items-center justify-center">
+                          <svg class="w-12 h-12 mb-3 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                          </svg>
+                          <p class="text-lg font-medium text-primary-700">Tidak ada buku yang disetujui</p>
+                          <p class="text-gray-500 mt-1">Saat ini tidak ada buku yang telah disetujui dalam sistem</p>
+                        </div>
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 
+  <!-- Script untuk efek tambahan -->
+  <script>
+    // Animasi untuk flash messages
+    document.addEventListener('DOMContentLoaded', function() {
+      const flashMessages = document.querySelectorAll('.flash-message');
+      flashMessages.forEach(message => {
+        setTimeout(() => {
+          message.style.opacity = '0';
+          message.style.transform = 'translateY(-10px)';
+          message.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+          
+          setTimeout(() => {
+            message.remove();
+          }, 300);
+        }, 5000);
+      });
+      
+      // Efek hover untuk baris tabel
+      const tableRows = document.querySelectorAll('.table-row');
+      tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+          this.style.backgroundColor = 'rgba(240, 247, 255, 0.8)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+          this.style.backgroundColor = '';
+        });
+      });
+    });
+  </script>
 </body>
 </html>

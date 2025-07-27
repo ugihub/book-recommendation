@@ -1,99 +1,90 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const db = require('./config/db');
+const path = require('path');
+const fs = require('fs');
+const ejs = require('ejs');
+const flash = require('connect-flash');
+const upload = require('./middleware/uploadMiddleware');
+
+const indexRoute = require('./routes/indexRoute');
+const authRoutes = require('./routes/authRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
-const indexRoute = require('./routes/indexRoute');
-const ejs = require('ejs');
-const flash = require('connect-flash');
-const authRoutes = require('./routes/authRoutes');
-const multer = require('multer');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+const UPLOAD_DIR = process.env.UPLOAD_DIR || 'public/uploads';
+const fullUploadPath = path.join(__dirname, UPLOAD_DIR);
+if (!fs.existsSync(fullUploadPath)) {
+    fs.mkdirSync(fullUploadPath, { recursive: true });
+}
 
-app.set('view engine', 'ejs');
+app.engine('html', ejs.renderFile);
+app.set('view engine', 'html');
+app.set('views', path.join(__dirname, 'views'));
+
 app.use(express.static('public'));
-app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'fallback_secret_for_development_only_change_this_in_production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production'
+    }
+}));
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-app.use(express.urlencoded({ extended: false }));
-
-// 2. Konfigurasi penyimpanan gambar
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/uploads/'); // Folder tujuan upload
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = file.originalname.split('.').pop();
-        cb(null, 'sampul-' + uniqueSuffix + '.' + ext);
-    }
-});
-
-// 3. Middleware upload
-const upload = multer({
-    storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png/;
-        const extname = filetypes.test(file.originalname.toLowerCase());
-        const mimetype = filetypes.test(file.mimetype);
-        if (mimetype && extname) return cb(null, true);
-        cb(new Error('Hanya file gambar yang diperbolehkan!'));
-    }
-});
-
-// Session
-app.use(session({
-    secret: 'your_secret_key',
-    resave: false,
-    saveUninitialized: false
-}));
-
-// Middleware untuk melempar session ke view
-app.use((req, res, next) => {
-    res.locals.session = req.session; // Sekarang bisa akses `session.user` di EJS
-    next();
-});
-
-// Flash Message
 app.use((req, res, next) => {
     res.locals.success_msg = req.flash('success_msg');
     res.locals.error_msg = req.flash('error_msg');
+    res.locals.session = req.session;
     next();
 });
 
-// Passport Config
-passport.use(new LocalStrategy(async (username, password, done) => {
-    const result = await db.query('SELECT * FROM users WHERE email = $1', [username]);
-    const user = result.rows[0];
-    if (!user) return done(null, false, { message: 'Incorrect email.' });
-    const isValid = await bcrypt.compare(password, user.password_hash);
-    if (!isValid) return done(null, false, { message: 'Incorrect password.' });
-    return done(null, user);
-}));
-
-passport.serializeUser((user, done) => done(null, user.id));
+passport.use(new LocalStrategy(
+    { usernameField: 'email' },
+    async (email, password, done) => {
+        try {
+            const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+            const user = result.rows[0];
+            if (!user) {
+                return done(null, false, { message: 'Email tidak ditemukan.' });
+            }
+            const isMatch = await bcrypt.compare(password, user.password_hash);
+            if (!isMatch) {
+                return done(null, false, { message: 'Password salah.' });
+            }
+            return done(null, user);
+        } catch (err) {
+            return done(err);
+        }
+    }
+));
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
 passport.deserializeUser(async (id, done) => {
-    const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
-    done(null, result.rows[0]);
+    try {
+        const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+        const user = result.rows[0];
+        done(null, user);
+    } catch (err) {
+        done(err);
+    }
 });
-
-// Gunakan EJS sebagai engine untuk file .html
-app.engine('html', (filePath, options, callback) => {
-    ejs.renderFile(filePath, options, { async: false }, callback);
-});
-app.set('view engine', 'html');
-app.set('views', __dirname + '/views'); // Pastikan path benar
-
-// Middleware lainnya (urlencoded, session, dll)
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static('public'));
 
 // Routes
 app.use('/', adminRoutes); // ✅ Pastikan route ini ada
@@ -109,6 +100,22 @@ app.use('/books', bookRoutes);
 const profileRoutes = require('./routes/profileRoutes');
 app.use('/', profileRoutes);
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server running on http://localhost:${process.env.PORT}`);
+app.listen(PORT, () => {
+    console.log(`🟢 Server AKSARARIA berjalan di http://localhost:${PORT}`);
+    console.log(`🔧 Lingkungan: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📂 Direktori kerja: ${__dirname}`);
+    console.log(`📂 Direktori upload: ${fullUploadPath}`);
+    db.pool.query('SELECT NOW()', (err, res) => {
+        if (err) {
+            console.error('❌ Gagal menghubungi database saat startup:', err.message);
+        } else {
+            console.log('✅ Koneksi database berhasil saat startup.');
+        }
+    });
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} sedang digunakan.`);
+    } else {
+        console.error(`❌ Gagal memulai server:`, err.message);
+    }
 });

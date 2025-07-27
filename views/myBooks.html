@@ -1,68 +1,136 @@
+
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Buku Saya</title>
-  </head>
-  <body>
-    <h2>Buku Saya</h2>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Buku Saya</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 min-h-screen font-sans text-gray-800">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="hidden md:flex flex-col bg-white shadow-lg z-30 transition-all duration-300 w-64 md:w-64 sidebar-open">
+      <div class="flex items-center justify-between h-20 border-b border-blue-100 px-4">
+        <img src="/aksararia.png" alt="AKSARARIA Logo" class="h-10 object-contain sidebar-logo transition-all duration-300">
+        <button id="sidebar-toggle" class="text-blue-600 text-2xl focus:outline-none ml-2">
+          <span id="sidebar-toggle-icon">«</span>
+        </button>
+      </div>
+      <nav class="flex-1 p-6 space-y-2">
+        <a href="/" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+          <span class="text-blue-600 text-xl">🏠</span>
+          <span class="sidebar-label font-semibold text-blue-700 ml-3">Beranda</span>
+        </a>
+        <a href="/books/my-books" class="flex items-center px-3 py-2 rounded-lg bg-blue-100">
+          <span class="text-blue-600 text-xl">📖</span>
+          <span class="sidebar-label font-semibold text-blue-700 ml-3">Buku Saya</span>
+        </a>
+        <a href="/books/submit-book" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+          <span class="text-blue-600 text-xl">📚</span>
+          <span class="sidebar-label font-semibold text-blue-700 ml-3">Submit Buku</span>
+        </a>
+        <a href="/logout" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+          <span class="text-blue-600 text-xl">🚪</span>
+          <span class="sidebar-label font-semibold text-blue-700 ml-3">Logout</span>
+        </a>
+      </nav>
+    </aside>
 
-    <% if (success_msg) { %>
-    <div class="flash-message success"><%= success_msg %></div>
-    <% } %> <% if (error_msg) { %>
-    <div class="flash-message error"><%= error_msg %></div>
-    <% } %>
+    <!-- Main Content -->
+    <main id="main-content" class="flex-1 p-6 transition-all duration-300 md:ml-64">
+    <!-- Sidebar Toggle Script -->
+    <script>
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
+      const sidebarToggle = document.getElementById('sidebar-toggle');
+      const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
+      function setSidebar(open) {
+        if (open) {
+          sidebar.classList.remove('w-20', 'sidebar-closed');
+          sidebar.classList.add('w-64', 'sidebar-open');
+          mainContent.classList.remove('md:ml-20');
+          mainContent.classList.add('md:ml-64');
+          document.querySelectorAll('.sidebar-label').forEach(e => e.classList.remove('hidden'));
+          sidebarToggleIcon.textContent = '«';
+        } else {
+          sidebar.classList.remove('w-64', 'sidebar-open');
+          sidebar.classList.add('w-20', 'sidebar-closed');
+          mainContent.classList.remove('md:ml-64');
+          mainContent.classList.add('md:ml-20');
+          document.querySelectorAll('.sidebar-label').forEach(e => e.classList.add('hidden'));
+          sidebarToggleIcon.textContent = '»';
+        }
+      }
+      let sidebarOpen = true;
+      setSidebar(sidebarOpen);
+      sidebarToggle.addEventListener('click', () => {
+        sidebarOpen = !sidebarOpen;
+        setSidebar(sidebarOpen);
+      });
+    </script>
+      <h1 class="text-2xl font-bold text-blue-800 mb-6">📖 Buku Saya</h1>
 
-    <!-- Tambahkan kolom status edit -->
-    <table>
-      <thead>
-        <tr>
-          <th>Judul</th>
-          <th>Penulis</th>
-          <th>Status</th>
-          <th>Tanggal Pengajuan</th>
-          <th>Status Edit</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (books && books.length > 0) { %> <% books.forEach(book => { %>
-        <tr>
-          <td><%= book.judul %></td>
-          <td><%= book.penulis %></td>
-          <td><%= book.status %></td>
-          <td><%= book.created_at.toLocaleDateString() %></td>
-          <td>
-            <% if (book.edit_status === 'pending') { %>
-            <span style="color: orange">Menunggu Persetujuan</span>
-            <% } else if (book.edit_status === 'approved') { %>
-            <span style="color: green">Perubahan Disetujui</span>
+      <% if (success_msg) { %>
+        <div class="bg-green-100 text-green-700 p-3 rounded mb-6 text-center">
+          <%= success_msg %>
+        </div>
+      <% } %>
+      <% if (error_msg) { %>
+        <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
+          <%= error_msg %>
+        </div>
+      <% } %>
+
+      <div class="overflow-x-auto rounded-lg shadow">
+        <table class="min-w-full bg-white">
+          <thead class="bg-blue-100">
+            <tr>
+              <th class="py-3 px-4 text-left font-semibold text-blue-700">Judul</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-700">Penulis</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-700">Status</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-700">Tanggal Pengajuan</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-700">Status Edit</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-700">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (books && books.length > 0) { %>
+              <% books.forEach(book => { %>
+                <tr class="border-b hover:bg-blue-50">
+                  <td class="py-2 px-4"><%= book.judul %></td>
+                  <td class="py-2 px-4"><%= book.penulis %></td>
+                  <td class="py-2 px-4"><%= book.status %></td>
+                  <td class="py-2 px-4"><%= book.created_at.toLocaleDateString() %></td>
+                  <td class="py-2 px-4">
+                    <% if (book.edit_status === 'pending') { %>
+                      <span class="text-orange-500 font-semibold">Menunggu Persetujuan</span>
+                    <% } else if (book.edit_status === 'approved') { %>
+                      <span class="text-green-600 font-semibold">Perubahan Disetujui</span>
+                    <% } else { %>
+                      <span class="text-gray-500">Belum Ada Edit</span>
+                    <% } %>
+                  </td>
+                  <td class="py-2 px-4">
+                    <% if (book.edit_status !== 'pending') { %>
+                      <a href="/books/edit/<%= book.id %>" class="text-blue-600 hover:underline">Edit</a>
+                    <% } else { %>
+                      <em class="text-gray-400">Edit menunggu persetujuan</em>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
             <% } else { %>
-            <span style="color: gray">Belum Ada Edit</span>
+              <tr>
+                <td colspan="6" class="py-4 text-center text-gray-500">Belum ada buku yang disetujui.</td>
+              </tr>
             <% } %>
-          </td>
-          <td>
-            <% if (book.edit_status !== 'pending') { %>
-            <a href="/books/edit/<%= book.id %>">Edit</a>
-            <% } else { %>
-            <em>Edit menunggu persetujuan</em>
-            <% } %>
-          </td>
-        </tr>
-        <% }) %> <% } else { %>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Tambahkan notifikasi -->
-        <% if (success_msg) { %>
-        <div class="flash-message success"><%= success_msg %></div>
-        <% } %> <% if (error_msg) { %>
-        <div class="flash-message error"><%= error_msg %></div>
-        <% } %>
-        <tr>
-          <td colspan="6">Belum ada buku yang disetujui.</td>
-        </tr>
-        <% } %>
-      </tbody>
-    </table>
-
-    <p><a href="/">Kembali ke Beranda</a></p>
-  </body>
+      <p class="mt-6"><a href="/" class="text-blue-600 hover:underline">&larr; Kembali ke Beranda</a></p>
+    </main>
+  </div>
+</body>
 </html>

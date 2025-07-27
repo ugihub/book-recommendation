@@ -8,76 +8,113 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-blue-50 min-h-screen font-sans text-gray-800">
-    <!-- Navigasi Dinamis -->
-    <div
-      class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white shadow-md p-4 sm:p-6 mb-6 rounded-lg"
-    >
-      <div class="flex items-center justify-between">
-        <a href="/" class="text-blue-600 hover:text-blue-800 font-semibold"
-          >Beranda</a
-        >
-        <button
-          id="mobile-menu-toggle"
-          class="sm:hidden text-blue-600 hover:text-blue-800 font-bold"
-        >
-          ☰
-        </button>
-      </div>
 
-      <!-- Navigasi untuk Desktop -->
-      <div id="desktop-nav" class="hidden sm:flex sm:items-center sm:space-x-4">
-        <% if (session && session.user) { %>
-        <span class="text-blue-800"
-          >Selamat datang, <strong><%= session.user.nama %></strong></span
-        >
-        <a
-          href="/logout"
-          class="text-blue-600 hover:text-blue-800 font-semibold"
-          >Logout</a
-        >
-        <% if (session.user.role === 'admin') { %>
-        <a
-          href="/admin/pending-books"
-          class="text-blue-600 hover:text-blue-800 font-semibold"
-          >Admin Panel</a
-        >
-        <a
-          href="/admin/users"
-          class="text-blue-600 hover:text-blue-800 font-semibold"
-          >Kelola Pengguna</a
-        >
-        <% } else if (session.user.role === 'member') { %>
-        <a
-          href="/submit-book"
-          class="text-blue-600 hover:text-blue-800 font-semibold"
-          >Submit Buku</a
-        >
-        <% } %> <% } else { %>
-        <a href="/login" class="text-blue-600 hover:text-blue-800 font-semibold"
-          >Login</a
-        >
-        <a
-          href="/register"
-          class="text-blue-600 hover:text-blue-800 font-semibold"
-          >Daftar</a
-        >
+
+    <!-- Sidebar & Main Content Wrapper -->
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside id="sidebar" class="hidden md:flex flex-col bg-white shadow-lg z-30 transition-all duration-300 w-64 md:w-64 sidebar-open">
+        <div class="flex items-center justify-between h-20 border-b border-blue-100 px-4">
+          <img src="/aksararia.png" alt="AKSARARIA Logo" class="h-10 object-contain sidebar-logo transition-all duration-300">
+          <button id="sidebar-toggle" class="text-blue-600 text-2xl focus:outline-none ml-2">
+            <span id="sidebar-toggle-icon">«</span>
+          </button>
+        </div>
+        <nav class="flex-1 p-6 space-y-2">
+          <a href="/" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+            <span class="text-blue-600 text-xl">🏠</span>
+            <span class="sidebar-label font-semibold text-blue-700 ml-3">Beranda</span>
+          </a>
+          <% if (session && session.user) { %>
+            <a href="/profile" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+              <span class="text-blue-600 text-xl">👤</span>
+              <span class="sidebar-label font-semibold text-blue-700 ml-3">Profil</span>
+            </a>
+            <a href="/logout" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+              <span class="text-blue-600 text-xl">🚪</span>
+              <span class="sidebar-label font-semibold text-blue-700 ml-3">Logout</span>
+            </a>
+            <% if (session.user.role === 'admin') { %>
+              <a href="/admin/pending-books" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+                <span class="text-blue-600 text-xl">🛠️</span>
+                <span class="sidebar-label font-semibold text-blue-700 ml-3">Admin Panel</span>
+              </a>
+              <a href="/admin/users" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+                <span class="text-blue-600 text-xl">👥</span>
+                <span class="sidebar-label font-semibold text-blue-700 ml-3">Kelola Pengguna</span>
+              </a>
+            <% } else if (session.user.role === 'member') { %>
+              <a href="/books/submit-book" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+                <span class="text-blue-600 text-xl">📚</span>
+                <span class="sidebar-label font-semibold text-blue-700 ml-3">Submit Buku</span>
+              </a>
+              <a href="/books/my-books" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+                <span class="text-blue-600 text-xl">📖</span>
+                <span class="sidebar-label font-semibold text-blue-700 ml-3">Buku Saya</span>
+              </a>
+            <% } %>
+          <% } else { %>
+            <a href="/login" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+              <span class="text-blue-600 text-xl">🔑</span>
+              <span class="sidebar-label font-semibold text-blue-700 ml-3">Login</span>
+            </a>
+            <a href="/register" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
+              <span class="text-blue-600 text-xl">📝</span>
+              <span class="sidebar-label font-semibold text-blue-700 ml-3">Daftar</span>
+            </a>
+          <% } %>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <div id="main-content" class="flex-1 p-6 transition-all duration-300 md:ml-64">
+    <!-- Sidebar Toggle Script -->
+    <script>
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('main-content');
+      const sidebarToggle = document.getElementById('sidebar-toggle');
+      const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
+      function setSidebar(open) {
+        if (open) {
+          sidebar.classList.remove('w-20', 'sidebar-closed');
+          sidebar.classList.add('w-64', 'sidebar-open');
+          mainContent.classList.remove('md:ml-20');
+          mainContent.classList.add('md:ml-64');
+          document.querySelectorAll('.sidebar-label').forEach(e => e.classList.remove('hidden'));
+          sidebarToggleIcon.textContent = '«';
+        } else {
+          sidebar.classList.remove('w-64', 'sidebar-open');
+          sidebar.classList.add('w-20', 'sidebar-closed');
+          mainContent.classList.remove('md:ml-64');
+          mainContent.classList.add('md:ml-20');
+          document.querySelectorAll('.sidebar-label').forEach(e => e.classList.add('hidden'));
+          sidebarToggleIcon.textContent = '»';
+        }
+      }
+      let sidebarOpen = true;
+      setSidebar(sidebarOpen);
+      sidebarToggle.addEventListener('click', () => {
+        sidebarOpen = !sidebarOpen;
+        setSidebar(sidebarOpen);
+      });
+      // Responsive: hide sidebar on mobile, show hamburger
+      // (You can add mobile drawer logic here if needed)
+    </script>
+
+
+        <!-- Flash Messages -->
+        <% if (success_msg) { %>
+        <div class="bg-green-100 text-green-700 p-3 rounded mb-6 text-center">
+          <%= success_msg %>
+        </div>
+        <% } %> <% if (error_msg) { %>
+        <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
+          <%= error_msg %>
+        </div>
         <% } %>
-      </div>
-    </div>
 
-    <!-- Flash Messages -->
-    <% if (success_msg) { %>
-    <div class="bg-green-100 text-green-700 p-3 rounded mb-6 text-center">
-      <%= success_msg %>
-    </div>
-    <% } %> <% if (error_msg) { %>
-    <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
-      <%= error_msg %>
-    </div>
-    <% } %>
-
-    <!-- Detail Buku -->
-    <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <!-- Detail Buku -->
+        <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h1 class="text-2xl font-bold text-blue-800 mb-6">
         📚 <%= book.judul %>
       </h1>
@@ -267,6 +304,8 @@
         <a href="/login">Login</a> untuk memberikan rating/ulasan.
       </p>
       <% } %>
+    </div>
+      </div>
     </div>
   </body>
 </html>

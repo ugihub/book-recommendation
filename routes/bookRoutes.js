@@ -3,7 +3,7 @@ module.exports = function (upload) {
   const router = express.Router();
   const bookController = require('../controllers/bookController');
   const { ensureAuthenticated, ensureRole, ensureDailyBookLimit, ensureBookOwnership, ensureDailyEditLimit } = require('../middleware/authMiddleware');
-  const uploadMiddleware = require('../middleware/uploadMiddleware');
+  // const uploadMiddleware = require('../middleware/uploadMiddleware'); // Removed duplicate, 'upload' is passed as argument
 
   router.get('/submit-book', ensureAuthenticated, ensureRole('member'), bookController.getSubmitBook);
   router.post('/submit', ensureAuthenticated, ensureRole('member'), ensureDailyBookLimit, upload.single('sampul'), bookController.postSubmitBook);
