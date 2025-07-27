@@ -193,15 +193,23 @@ exports.deleteBook = async (req, res) => {
 exports.getPendingEdits = async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT e.id, b.judul, e.judul AS edit_judul, e.penulis AS edit_penulis, e.status
+      SELECT e.*, b.judul, b.penulis, u.nama AS submitter_name
       FROM book_edits e
       JOIN books b ON e.book_id = b.id
+      JOIN users u ON e.submitter_id = u.id
       WHERE e.status = 'pending'
+      ORDER BY e.created_at DESC
     `);
-    res.render('adminPendingEdits', { edits: result.rows });
+
+    // Perbaikan: Sesuaikan nama view dengan struktur folder
+    res.render('admin/bookEdits', {
+      title: 'Admin Panel - Permintaan Edit Buku',
+      edits: result.rows
+    });
   } catch (err) {
-    req.flash('error_msg', 'Gagal memuat daftar edit buku.');
-    res.redirect('/admin/pending-books');
+    console.error('Error fetching pending edits:', err);
+    req.flash('error_msg', 'Gagal memuat daftar permintaan edit.');
+    res.redirect('/');
   }
 };
 
