@@ -1,208 +1,258 @@
-<!-- views/editBook.html -->
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Edit Buku - <%= book.judul %></title>
-    <script src="https://cdn.tailwindcss.com "></script>
-  </head>
-  <body class="bg-gray-100 min-h-screen">
-    <nav class="bg-white shadow-sm p-4">
-      <div class="container mx-auto flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-blue-600">📝 Edit Buku</h1>
-        <a
-          href="/books/<%= book.id %>"
-          class="text-blue-600 hover:text-blue-800"
-          >← Kembali ke Detail Buku</a
-        >
-      </div>
-    </nav>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ajukan Edit Buku: <%= book.judul %> - AKSARARIA</title>
+  <link rel="icon" type="image/x-icon" href="/images/aksararia.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 text-gray-800 font-sans">
+  <!-- Sidebar Desktop -->
+  <div id="desktop-sidebar" class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg md:block hidden z-10 transition-all duration-300">
+    <!-- Logo -->
+    <div id="sidebar-logo" class="flex items-center justify-center h-16 border-b border-blue-200">
+      <img src="/images/aksararia.png" alt="AKSARARIA Logo" class="h-12 object-contain" />
+    </div>
+    
+    <!-- Navigasi -->
+    <div id="sidebar-nav" class="p-4 space-y-4">
+      <a href="/" class="block text-blue-600 hover:text-blue-800 font-semibold">🏠 Beranda</a>
+      
+      <% if (session && session.user) { %>
+        <a href="/profile" class="block text-blue-600 hover:text-blue-800 font-semibold">👤 Profil</a>
+        
+        <% if (session.user.role === 'admin') { %>
+          <a href="/admin/pending-books" class="block text-blue-600 hover:text-blue-800 font-semibold">🛠️ Admin Panel</a>
+          <a href="/admin/users" class="block text-blue-600 hover:text-blue-800 font-semibold">👥 Kelola Pengguna</a>
+          <a href="/admin/book-edits" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Permintaan Edit</a>
+        <% } else if (session.user.role === 'member') { %>
+          <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
+          <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>
+        <% } %>
+        
+        <a href="/logout" class="block text-red-600 hover:text-red-800 font-semibold">🚪 Logout</a>
+      <% } else { %>
+        <a href="/login" class="block text-blue-600 hover:text-blue-800 font-semibold">🔑 Login</a>
+        <a href="/register" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Daftar</a>
+      <% } %>
+    </div>
+    
+    <!-- Tombol Toggle -->
+    <button id="toggle-sidebar" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-blue-600 hover:text-blue-800 p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-all">
+      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" id="toggle-path" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+  </div>
 
-    <main class="container mx-auto p-6">
+  <!-- Sidebar Mobile -->
+  <div id="mobile-sidebar" class="md:hidden fixed inset-0 z-50 bg-white w-64 shadow-lg transform -translate-x-full hidden transition-transform duration-300">
+    <div class="flex justify-between items-center p-4 border-b border-blue-200">
+      <h3 class="text-blue-800 font-bold text-lg">Navigasi</h3>
+      <button id="close-mobile-sidebar" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    </div>
+    <div class="p-4 space-y-4">
+      <a href="/" class="block text-blue-600 hover:text-blue-800 font-semibold">🏠 Beranda</a>
+      
+      <% if (session && session.user) { %>
+        <a href="/profile" class="block text-blue-600 hover:text-blue-800 font-semibold">👤 Profil</a>
+        
+        <% if (session.user.role === 'admin') { %>
+          <a href="/admin/pending-books" class="block text-blue-600 hover:text-blue-800 font-semibold">🛠️ Admin Panel</a>
+          <a href="/admin/users" class="block text-blue-600 hover:text-blue-800 font-semibold">👥 Kelola Pengguna</a>
+          <a href="/admin/book-edits" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Permintaan Edit</a>
+        <% } else if (session.user.role === 'member') { %>
+          <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
+          <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>
+        <% } %>
+        
+        <a href="/logout" class="block text-red-600 hover:text-red-800 font-semibold">🚪 Logout</a>
+      <% } else { %>
+        <a href="/login" class="block text-blue-600 hover:text-blue-800 font-semibold">🔑 Login</a>
+        <a href="/register" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Daftar</a>
+      <% } %>
+    </div>
+  </div>
+  
+  <!-- Tombol Hamburger untuk Mobile -->
+  <button id="mobile-menu-toggle" class="md:hidden fixed bottom-4 right-4 z-40 bg-blue-500 text-white p-3 rounded-full shadow-md hover:shadow-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+
+  <!-- Konten Utama -->
+  <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
+    <div class="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
+      <h2 class="text-xl sm:text-2xl font-bold text-center text-blue-800 mb-6">Ajukan Edit Buku: <%= book.judul %></h2>
+
       <!-- Flash Messages -->
+      <% if (error_msg) { %>
+        <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
+          <%= error_msg %>
+        </div>
+      <% } %>
       <% if (success_msg) { %>
-      <div
-        class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md"
-      >
-        <%= success_msg %>
-      </div>
-      <% } %> <% if (error_msg) { %>
-      <div
-        class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md"
-      >
-        <%= error_msg %>
-      </div>
+        <div class="bg-green-100 text-green-700 p-3 rounded mb-6 text-center">
+          <%= success_msg %>
+        </div>
       <% } %>
 
       <!-- Form Edit Buku -->
-      <div class="bg-white shadow rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Ubah Detail Buku</h2>
-        <form
-          id="editBookForm"
-          action="/books/edit/submit"
-          method="POST"
-          enctype="multipart/form-data"
-          class="space-y-6"
-        >
-          <input type="hidden" name="book_id" value="<%= book.id %>" />
-
-          <!-- Judul -->
-          <div>
-            <label for="judul" class="block text-sm font-medium text-gray-700"
-              >Judul Buku</label
-            >
-            <input
-              type="text"
-              name="judul"
-              id="judul"
-              value="<%= book.judul %>"
-              required
-              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
-            />
-          </div>
-
-          <!-- Penulis -->
-          <div>
-            <label for="penulis" class="block text-sm font-medium text-gray-700"
-              >Penulis</label
-            >
-            <input
-              type="text"
-              name="penulis"
-              id="penulis"
-              value="<%= book.penulis %>"
-              required
-              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
-            />
-          </div>
-
-          <!-- Genre -->
-          <div>
-            <label for="genre" class="block text-sm font-medium text-gray-700"
-              >Genre (Opsional)</label
-            >
-            <input
-              type="text"
-              name="genre"
-              id="genre"
-              value="<%= book.genre || '' %>"
-              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <!-- Tahun Terbit -->
-          <div>
-            <label
-              for="tahun_terbit"
-              class="block text-sm font-medium text-gray-700"
-              >Tahun Terbit</label
-            >
-            <input
-              type="number"
-              name="tahun_terbit"
-              id="tahun_terbit"
-              value="<%= book.tahun_terbit || '' %>"
-              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <!-- Penghargaan -->
-          <div>
-            <label for="awards" class="block text-sm font-medium text-gray-700"
-              >Penghargaan (Opsional)</label
-            >
-            <input
-              type="text"
-              name="awards"
-              id="awards"
-              value="<%= book.awards || '' %>"
-              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <!-- Deskripsi -->
-          <div>
-            <label
-              for="deskripsi"
-              class="block text-sm font-medium text-gray-700"
-              >Deskripsi Buku</label
-            >
-            <textarea
-              name="deskripsi"
-              id="deskripsi"
-              rows="5"
-              required
-              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
-            >
-            <%= book.deskripsi || '' %>
-          </textarea
-            >
-          </div>
-
-          <!-- Link Baca/Beli -->
-          <div>
-            <label
-              for="link_baca_beli"
-              class="block text-sm font-medium text-gray-700"
-              >Link Baca/Beli (Opsional)</label
-            >
-            <input
-              type="text"
-              name="link_baca_beli"
-              id="link_baca_beli"
-              value="<%= book.link_baca_beli || '' %>"
-              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <!-- Upload Sampul -->
-          <div>
-            <label for="sampul" class="block text-sm font-medium text-gray-700"
-              >Upload Sampul Buku (Opsional)</label
-            >
-            <input
-              type="file"
-              name="sampul"
-              id="sampul"
-              accept="image/*"
-              class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
-            />
-            <small class="text-gray-500 mt-1"
-              >Biarkan kosong jika tidak ingin mengubah sampul</small
-            >
-          </div>
-
-          <!-- Preview Sampul -->
-          <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700"
-              >Pratinjau Sampul</label
-            >
-            <div
-              class="mt-2 flex items-center justify-center w-full h-48 bg-gray-100 border border-dashed border-gray-300 rounded-md"
-            >
-              <img
-                id="preview"
-                src=""
-                alt="Pratinjau Sampul"
-                class="max-h-full max-w-full object-contain hidden"
-              />
-              <p id="previewText" class="text-gray-400 text-sm">
-                Sampul akan muncul di sini setelah diupload
-              </p>
+      <form action="/books/<%= book.id %>/edit" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <!-- Informasi Buku Asli -->
+        <div class="border-b pb-4 mb-4">
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">Buku Asli</h3>
+          <div class="space-y-2">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Judul</label>
+              <input type="text" value="<%= book.judul %>" disabled class="w-full px-4 py-2 border border-blue-300 rounded-lg bg-gray-100" />
             </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Penulis</label>
+              <input type="text" value="<%= book.penulis %>" disabled class="w-full px-4 py-2 border border-blue-300 rounded-lg bg-gray-100" />
+            </div>
+            <% if (book.sampul_url) { %>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Sampul Buku</label>
+                <img src="<%= book.sampul_url %>" alt="Sampul buku" class="w-full h-auto object-cover rounded-md" />
+              </div>
+            <% } %>
           </div>
+        </div>
 
-          <!-- Submit -->
-          <div class="mt-6">
-            <button
-              type="submit"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-            >
-              Kirim Perubahan (Menunggu Persetujuan Admin)
-            </button>
+        <!-- Perubahan yang Diajukan -->
+        <div class="border-b pb-4 mb-4">
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">Perubahan yang Diajukan</h3>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Judul Baru (Opsional)</label>
+            <input type="text" name="edit_judul" placeholder="Biarkan kosong jika tidak ingin mengubah judul" class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
           </div>
-        </form>
-      </div>
-    </main>
-  </body>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Penulis Baru (Opsional)</label>
+            <input type="text" name="edit_penulis" placeholder="Biarkan kosong jika tidak ingin mengubah penulis" class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Genre (Opsional)</label>
+            <input type="text" name="genre" placeholder="Biarkan kosong jika tidak ingin mengubah genre" class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Terbit (Opsional)</label>
+            <input type="number" name="tahun_terbit" placeholder="Biarkan kosong jika tidak ingin mengubah tahun terbit" class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" min="1800" max="2025" />
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi (Opsional)</label>
+            <textarea name="deskripsi" placeholder="Biarkan kosong jika tidak ingin mengubah deskripsi" rows="4" class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Link Baca/Beli (Opsional)</label>
+            <input type="url" name="link_baca_beli" placeholder="Biarkan kosong jika tidak ingin mengubah link" class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sampul Baru (Opsional)</label>
+            <input type="file" name="sampul" accept="image/jpeg,image/png,image/gif" class="w-full" />
+            <p class="mt-1 text-xs text-gray-500">Format yang didukung: JPG, PNG, GIF (Maks. 5MB)</p>
+          </div>
+        </div>
+
+        <!-- Alasan Pengeditan -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Alasan Pengeditan <span class="text-red-500">*</span></label>
+          <textarea name="alasan" required rows="3" class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Jelaskan alasan Anda mengajukan perubahan ini..."></textarea>
+        </div>
+
+        <!-- Tombol Submit -->
+        <div class="flex space-x-4">
+          <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+            Ajukan Perubahan
+          </button>
+        </div>
+        
+        <!-- Link Kembali -->
+        <div class="mt-6 text-center">
+          <a href="/books/<%= book.id %>" class="text-blue-500 hover:text-blue-800 font-semibold">
+            &larr; Kembali ke Detail Buku
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Script Toggle Sidebar -->
+  <script>
+    // Mobile Sidebar Toggle
+    const menuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileSidebar = document.getElementById('mobile-sidebar');
+    const closeBtn = document.getElementById('close-mobile-sidebar');
+    
+    if (menuToggle && mobileSidebar && closeBtn) {
+      menuToggle.addEventListener('click', () => {
+        mobileSidebar.classList.remove('-translate-x-full', 'hidden');
+        mobileSidebar.classList.add('translate-x-0');
+      });
+      
+      closeBtn.addEventListener('click', () => {
+        mobileSidebar.classList.add('-translate-x-full');
+        mobileSidebar.classList.remove('translate-x-0');
+        setTimeout(() => {
+          mobileSidebar.classList.add('hidden');
+        }, 300);
+      });
+      
+      // Tutup sidebar saat klik di luar
+      document.addEventListener('click', (e) => {
+        if (!mobileSidebar.contains(e.target) && !e.target.closest('#mobile-menu-toggle')) {
+          mobileSidebar.classList.add('-translate-x-full');
+          mobileSidebar.classList.remove('translate-x-0');
+          setTimeout(() => {
+            mobileSidebar.classList.add('hidden');
+          }, 300);
+        }
+      });
+    }
+    
+    // Desktop Sidebar Toggle
+    document.addEventListener('DOMContentLoaded', function () {
+      const toggleBtn = document.getElementById('toggle-sidebar');
+      const sidebar = document.getElementById('desktop-sidebar');
+      const mainContent = document.getElementById('main-content');
+      
+      if (toggleBtn && sidebar && mainContent) {
+        let isCollapsed = false;
+        toggleBtn.addEventListener('click', () => {
+          isCollapsed = !isCollapsed;
+          
+          // Toggle sidebar width
+          if (isCollapsed) {
+            sidebar.classList.remove('w-64');
+            sidebar.classList.add('w-16');
+            mainContent.classList.remove('md:ml-64');
+            mainContent.classList.add('md:ml-16');
+            
+            // Ubah ikon toggle
+            document.getElementById('toggle-path').setAttribute('d', 'M9 5l7 7-7 7');
+          } else {
+            sidebar.classList.remove('w-16');
+            sidebar.classList.add('w-64');
+            mainContent.classList.remove('md:ml-16');
+            mainContent.classList.add('md:ml-64');
+            
+            // Ubah ikon toggle
+            document.getElementById('toggle-path').setAttribute('d', 'M15 19l-7-7 7-7');
+          }
+        });
+      } else {
+        console.warn('Elemen sidebar tidak ditemukan. Pastikan ID sesuai.');
+      }
+    });
+  </script>
+</body>
 </html>
