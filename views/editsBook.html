@@ -1,0 +1,208 @@
+<!-- views/editBook.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Edit Buku - <%= book.judul %></title>
+    <script src="https://cdn.tailwindcss.com "></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <nav class="bg-white shadow-sm p-4">
+      <div class="container mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-blue-600">📝 Edit Buku</h1>
+        <a
+          href="/books/<%= book.id %>"
+          class="text-blue-600 hover:text-blue-800"
+          >← Kembali ke Detail Buku</a
+        >
+      </div>
+    </nav>
+
+    <main class="container mx-auto p-6">
+      <!-- Flash Messages -->
+      <% if (success_msg) { %>
+      <div
+        class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md"
+      >
+        <%= success_msg %>
+      </div>
+      <% } %> <% if (error_msg) { %>
+      <div
+        class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md"
+      >
+        <%= error_msg %>
+      </div>
+      <% } %>
+
+      <!-- Form Edit Buku -->
+      <div class="bg-white shadow rounded-lg p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Ubah Detail Buku</h2>
+        <form
+          id="editBookForm"
+          action="/books/edit/submit"
+          method="POST"
+          enctype="multipart/form-data"
+          class="space-y-6"
+        >
+          <input type="hidden" name="book_id" value="<%= book.id %>" />
+
+          <!-- Judul -->
+          <div>
+            <label for="judul" class="block text-sm font-medium text-gray-700"
+              >Judul Buku</label
+            >
+            <input
+              type="text"
+              name="judul"
+              id="judul"
+              value="<%= book.judul %>"
+              required
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Penulis -->
+          <div>
+            <label for="penulis" class="block text-sm font-medium text-gray-700"
+              >Penulis</label
+            >
+            <input
+              type="text"
+              name="penulis"
+              id="penulis"
+              value="<%= book.penulis %>"
+              required
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-200 focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Genre -->
+          <div>
+            <label for="genre" class="block text-sm font-medium text-gray-700"
+              >Genre (Opsional)</label
+            >
+            <input
+              type="text"
+              name="genre"
+              id="genre"
+              value="<%= book.genre || '' %>"
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Tahun Terbit -->
+          <div>
+            <label
+              for="tahun_terbit"
+              class="block text-sm font-medium text-gray-700"
+              >Tahun Terbit</label
+            >
+            <input
+              type="number"
+              name="tahun_terbit"
+              id="tahun_terbit"
+              value="<%= book.tahun_terbit || '' %>"
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Penghargaan -->
+          <div>
+            <label for="awards" class="block text-sm font-medium text-gray-700"
+              >Penghargaan (Opsional)</label
+            >
+            <input
+              type="text"
+              name="awards"
+              id="awards"
+              value="<%= book.awards || '' %>"
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Deskripsi -->
+          <div>
+            <label
+              for="deskripsi"
+              class="block text-sm font-medium text-gray-700"
+              >Deskripsi Buku</label
+            >
+            <textarea
+              name="deskripsi"
+              id="deskripsi"
+              rows="5"
+              required
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
+            >
+            <%= book.deskripsi || '' %>
+          </textarea
+            >
+          </div>
+
+          <!-- Link Baca/Beli -->
+          <div>
+            <label
+              for="link_baca_beli"
+              class="block text-sm font-medium text-gray-700"
+              >Link Baca/Beli (Opsional)</label
+            >
+            <input
+              type="text"
+              name="link_baca_beli"
+              id="link_baca_beli"
+              value="<%= book.link_baca_beli || '' %>"
+              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Upload Sampul -->
+          <div>
+            <label for="sampul" class="block text-sm font-medium text-gray-700"
+              >Upload Sampul Buku (Opsional)</label
+            >
+            <input
+              type="file"
+              name="sampul"
+              id="sampul"
+              accept="image/*"
+              class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
+            />
+            <small class="text-gray-500 mt-1"
+              >Biarkan kosong jika tidak ingin mengubah sampul</small
+            >
+          </div>
+
+          <!-- Preview Sampul -->
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-gray-700"
+              >Pratinjau Sampul</label
+            >
+            <div
+              class="mt-2 flex items-center justify-center w-full h-48 bg-gray-100 border border-dashed border-gray-300 rounded-md"
+            >
+              <img
+                id="preview"
+                src=""
+                alt="Pratinjau Sampul"
+                class="max-h-full max-w-full object-contain hidden"
+              />
+              <p id="previewText" class="text-gray-400 text-sm">
+                Sampul akan muncul di sini setelah diupload
+              </p>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <div class="mt-6">
+            <button
+              type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+            >
+              Kirim Perubahan (Menunggu Persetujuan Admin)
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </body>
+</html>

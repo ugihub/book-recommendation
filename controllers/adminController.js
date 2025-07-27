@@ -191,7 +191,7 @@ exports.getPendingEdits = async (req, res) => {
       edit_judul: result.rows[0].edit_judul
     } : 'Tidak ada data');
 
-    res.render('bookEdits', {
+    res.render('adminPendingEdits', {
       title: 'Admin Panel - Permintaan Edit Buku',
       edits: result.rows
     });
