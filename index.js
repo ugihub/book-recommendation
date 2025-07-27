@@ -1,183 +1,120 @@
-require('dotenv').config();
-
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const db = require('./config/db');
-const path = require('path');
-const fs = require('fs'); // Tambahkan fs untuk memastikan direktori ada
-const ejs = require('ejs'); // Tambahkan ejs untuk konfigurasi engine
-
-// --- Middleware ---
-const flash = require('connect-flash');
-const expressLayouts = require('express-ejs-layouts');
-
-// --- Routes ---
-const indexRoute = require('./routes/indexRoute');
-const authRoutes = require('./routes/authRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-const bookRoutes = require('./routes/bookRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-
-// --- Middleware Auth ---
 const authMiddleware = require('./middleware/authMiddleware');
+const indexRoute = require('./routes/indexRoute');
+const ejs = require('ejs');
+const flash = require('connect-flash');
+const authRoutes = require('./routes/authRoutes');
+const multer = require('multer');
 
 const app = express();
 
-// --- 1. Konfigurasi Dasar dan Direktori ---
-const PORT = process.env.PORT || 3000;
-const UPLOAD_DIR = process.env.UPLOAD_DIR || 'public/uploads';
-
-// Pastikan direktori uploads ada (penting untuk Railway)
-const fullUploadPath = path.join(__dirname, UPLOAD_DIR);
-if (!fs.existsSync(fullUploadPath)) {
-    console.log(`Membuat direktori upload: ${fullUploadPath}`);
-    fs.mkdirSync(fullUploadPath, { recursive: true });
-}
-
-// --- 2. Konfigurasi View Engine untuk .html ---
-// Konfigurasi EJS untuk merender file dengan ekstensi .html
-app.engine('html', ejs.renderFile); // <<< Ini yang penting
-app.set('view engine', 'html'); // <<< Gunakan html sebagai view engine
-app.set('views', path.join(__dirname, 'views'));
-app.use(expressLayouts); // Gunakan express-ejs-layouts jika diperlukan di layout
-
-// --- 3. Middleware dasar ---
+app.set('view engine', 'ejs');
 app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// --- 4. Konfigurasi Session ---
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback_secret_for_development_only_change_this_in_production',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 24 jam
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production' // Hanya untuk HTTPS di produksi (Railway)
-    }
-}));
-
-// --- 5. Middleware Passport ---
+app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
-
-// --- 6. Middleware Flash Messages ---
 app.use(flash());
+app.use(express.urlencoded({ extended: false }));
 
-// --- 7. Middleware untuk melempar data ke views ---
+// 2. Konfigurasi penyimpanan gambar
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/uploads/'); // Folder tujuan upload
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = file.originalname.split('.').pop();
+        cb(null, 'sampul-' + uniqueSuffix + '.' + ext);
+    }
+});
+
+// 3. Middleware upload
+const upload = multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png/;
+        const extname = filetypes.test(file.originalname.toLowerCase());
+        const mimetype = filetypes.test(file.mimetype);
+        if (mimetype && extname) return cb(null, true);
+        cb(new Error('Hanya file gambar yang diperbolehkan!'));
+    }
+});
+
+// Session
+app.use(session({
+    secret: 'your_secret_key',
+    resave: false,
+    saveUninitialized: false
+}));
+
+// Middleware untuk melempar session ke view
 app.use((req, res, next) => {
-    res.locals.success_msg = req.flash('success_msg');
-    res.locals.error_msg = req.flash('error_msg');
-    res.locals.session = req.session; // Jadikan session tersedia di views
+    res.locals.session = req.session; // Sekarang bisa akses `session.user` di EJS
     next();
 });
 
-// --- 8. Passport Config ---
-passport.use(new LocalStrategy(
-    { usernameField: 'email' },
-    async (email, password, done) => {
-        try {
-            const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-            const user = result.rows[0];
-
-            if (!user) {
-                return done(null, false, { message: 'Email tidak ditemukan.' });
-            }
-
-            const isMatch = await bcrypt.compare(password, user.password_hash);
-            if (!isMatch) {
-                return done(null, false, { message: 'Password salah.' });
-            }
-
-            return done(null, user);
-        } catch (err) {
-            return done(err);
-        }
-    }
-));
-
-passport.serializeUser((user, done) => {
-    done(null, user.id);
+// Flash Message
+app.use((req, res, next) => {
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
+    next();
 });
 
+// Passport Config
+passport.use(new LocalStrategy(async (username, password, done) => {
+    const result = await db.query('SELECT * FROM users WHERE email = $1', [username]);
+    const user = result.rows[0];
+    if (!user) return done(null, false, { message: 'Incorrect email.' });
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    if (!isValid) return done(null, false, { message: 'Incorrect password.' });
+    return done(null, user);
+}));
+
+passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
-    try {
-        const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
-        const user = result.rows[0];
-        done(null, user);
-    } catch (err) {
-        done(err);
-    }
+    const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+    done(null, result.rows[0]);
 });
 
+// Gunakan EJS sebagai engine untuk file .html
+app.engine('html', (filePath, options, callback) => {
+    ejs.renderFile(filePath, options, { async: false }, callback);
+});
+app.set('view engine', 'html');
+app.set('views', __dirname + '/views'); // Pastikan path benar
 
-// --- 9. Routes ---
-// Route dasar
+// Middleware lainnya (urlencoded, session, dll)
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static('public'));
+
+// Routes
+app.use('/', adminRoutes); // ✅ Pastikan route ini ada
 app.use('/', indexRoute);
-
-// Route autentikasi
 app.use('/', authRoutes);
-
-// Route profil pengguna (harus login)
-app.use('/', authMiddleware.ensureAuthenticated, profileRoutes);
-
-// Route buku
-app.use('/books', authMiddleware.ensureAuthenticated, bookRoutes);
-
-// Route ulasan (harus login)
+app.use('/', reviewRoutes);
 app.use('/reviews', authMiddleware.ensureAuthenticated, reviewRoutes);
+app.use('/admin', authMiddleware.ensureRole('admin'), adminRoutes);
 
-// Route admin (harus admin)
-app.use('/admin', authMiddleware.ensureAuthenticated, authMiddleware.ensureRole('admin'), adminRoutes);
+const bookRoutes = require('./routes/bookRoutes')(upload); // Kirim upload ke route
+app.use('/books', bookRoutes);
 
+const profileRoutes = require('./routes/profileRoutes');
+app.use('/', profileRoutes);
 
-// --- 10. Error handling untuk route tidak ditemukan (404) ---
-app.use((req, res) => {
-    console.log(`404 Not Found: ${req.method} ${req.originalUrl}`);
-    // Pastikan Anda memiliki views/404.html
-    res.status(404).render('404', {
-        title: 'Halaman Tidak Ditemukan - AKSARARIA',
-        session: req.session
+try {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
     });
-});
-
-// --- 11. Error handling untuk server error (500) ---
-// Middleware error handler harus didefinisikan paling akhir
-app.use((err, req, res, next) => {
-    console.error('🚨 Server Error Middleware:', err.stack);
-    req.flash('error_msg', 'Terjadi kesalahan pada server.');
-    // Pastikan Anda memiliki views/500.html
-    res.status(500).render('500', {
-        title: 'Kesalahan Server - AKSARARIA',
-        session: req.session
-    });
-});
-
-// --- 12. Jalankan server ---
-app.listen(PORT, () => {
-    console.log(`🟢 Server AKSARARIA berjalan di http://localhost:${PORT}`);
-    console.log(`🔧 Lingkungan: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📂 Direktori kerja: ${__dirname}`);
-    console.log(`📂 Direktori upload: ${fullUploadPath}`);
-
-    // Tes koneksi database sederhana saat startup
-    db.pool.query('SELECT NOW()', (err, res) => {
-        if (err) {
-            console.error('❌ Gagal menghubungi database saat startup:', err.message);
-            // Di Railway, jangan exit(1) karena akan menyebabkan restart loop
-        } else {
-            console.log('✅ Koneksi database berhasil saat startup.');
-        }
-    });
-}).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`❌ Port ${PORT} sedang digunakan.`);
-    } else {
-        console.error(`❌ Gagal memulai server:`, err.message);
-    }
-});
+} catch (err) {
+    console.error("Error starting server:", err);
+    process.exit(1);
+}
