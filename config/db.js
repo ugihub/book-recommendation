@@ -3,14 +3,12 @@ const { Pool } = require('pg');
 // Periksa apakah kita berada di lingkungan Railway
 const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT !== undefined;
 
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    } : false, // Nonaktifkan SSL di lingkungan development
-    max: 20, // Jumlah koneksi maksimum
-    idleTimeoutMillis: 30000, // Timeout untuk koneksi idle
-    connectionTimeoutMillis: 5000, // Timeout koneksi
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // Tambahkan event listener untuk error koneksi
