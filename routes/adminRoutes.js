@@ -22,7 +22,7 @@ router.post('/demote-member/:id', ensureAuthenticated, ensureRole('admin'), admi
 // Routes edit
 router.get('/book-edits', ensureAuthenticated, ensureRole('admin'), adminController.getPendingEdits);
 router.get('/book-edits/:id', adminController.getEditBook);
-router.post('/book-edits/:id/approve', adminController.approveEdit);
-router.post('/book-edits/:id/reject', adminController.rejectEdit);
+router.post('/approve-edit/:id', ensureAuthenticated, ensureRole('admin'), adminController.approveBookEdit);
+router.post('/reject-edit/:id', ensureAuthenticated, ensureRole('admin'), adminController.rejectBookEdit);
 
 module.exports = router;
