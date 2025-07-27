@@ -109,6 +109,12 @@ app.use('/books', bookRoutes);
 const profileRoutes = require('./routes/profileRoutes');
 app.use('/', profileRoutes);
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server running on http://localhost:${process.env.PORT}`);
-});
+try {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+} catch (err) {
+  console.error("Error starting server:", err);
+  process.exit(1);
+}
