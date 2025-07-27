@@ -184,13 +184,23 @@ exports.getPendingEdits = async (req, res) => {
       ORDER BY e.created_at DESC
     `);
 
-    // Pastikan penulisan path konsisten (gunakan slash, bukan backslash)
-    res.render('bookEdits', {
+    console.log('Jumlah permintaan edit:', result.rows.length);
+    console.log('Contoh data edit:', result.rows[0] ? {
+      id: result.rows[0].id,
+      judul: result.rows[0].judul,
+      edit_judul: result.rows[0].edit_judul
+    } : 'Tidak ada data');
+
+    res.render('admin/bookEdits', {
       title: 'Admin Panel - Permintaan Edit Buku',
       edits: result.rows
     });
   } catch (err) {
-    console.error('Error fetching pending edits:', err);
+    console.error('Error fetching pending edits:', {
+      message: err.message,
+      stack: err.stack
+    });
+
     req.flash('error_msg', 'Gagal memuat daftar edit buku.');
     res.redirect('/admin');
   }

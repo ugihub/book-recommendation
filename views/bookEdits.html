@@ -3,70 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Edit Buku: <%= book.judul %></title>
+  <!-- Ganti title yang tidak memerlukan variabel book -->
+  <title><%= title || 'Daftar Permintaan Edit Buku' %> - AKSARARIA</title>
   <link rel="icon" type="image/x-icon" href="/images/aksararia.png" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-blue-50 text-gray-800 font-sans">
   <!-- Konten Utama -->
   <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
-    <div class="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
-      <h2 class="text-xl sm:text-2xl font-bold text-center text-blue-800 mb-6">Edit Buku: <%= book.judul %></h2>
+    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
+      <!-- Gunakan title dari controller -->
+      <h1 class="text-2xl font-bold text-blue-800 mb-6"><%= title %></h1>
 
       <!-- Flash Messages -->
-      <% if (error_msg) { %>
-        <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
-          <%= error_msg %>
-        </div>
-      <% } %>
       <% if (success_msg) { %>
         <div class="bg-green-100 text-green-700 p-3 rounded mb-6 text-center">
           <%= success_msg %>
         </div>
       <% } %>
+      <% if (error_msg) { %>
+        <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
+          <%= error_msg %>
+        </div>
+      <% } %>
 
-      <form action="/admin/book-edits/<%= edit.id %>/approve" method="POST" enctype="multipart/form-data" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Judul Asli</label>
-          <input type="text" value="<%= book.judul %>" disabled class="w-full px-4 py-2 border border-blue-300 rounded-lg bg-gray-100" />
-        </div>
-        <% if (edit.edit_judul) { %>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Judul Baru</label>
-            <input type="text" value="<%= edit.edit_judul %>" disabled class="w-full px-4 py-2 border border-blue-300 rounded-lg bg-gray-100" />
-          </div>
-        <% } %>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Penulis Asli</label>
-          <input type="text" value="<%= book.penulis %>" disabled class="w-full px-4 py-2 border border-blue-300 rounded-lg bg-gray-100" />
-        </div>
-        <% if (edit.edit_penulis) { %>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Penulis Baru</label>
-            <input type="text" value="<%= edit.edit_penulis %>" disabled class="w-full px-4 py-2 border border-blue-300 rounded-lg bg-gray-100" />
-          </div>
-        <% } %>
-        
-        <% if (edit.sampul_url) { %>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Sampul Baru</label>
-            <img src="<%= edit.sampul_url %>" alt="Sampul baru" class="w-full h-auto object-cover rounded-md" />
-          </div>
-        <% } %>
-        
-        <div class="flex space-x-4">
-          <button type="submit" name="action" value="approve" class="w-1/2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
-            Setujui
-          </button>
-          <button type="submit" name="action" value="reject" class="w-1/2 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
-            Tolak
-          </button>
-        </div>
-      </form>
-      <div class="mt-6 text-center">
-        <a href="/admin/book-edits" class="text-blue-500 hover:text-blue-700 font-semibold">
-          &larr; Kembali ke Daftar Permintaan Edit
+      <!-- Daftar Permintaan Edit -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-lg shadow text-sm">
+          <thead class="bg-blue-100">
+            <tr>
+              <th class="py-3 px-4 text-left font-semibold text-blue-800">ID</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-800">Buku Asli</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-800">Perubahan</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-800">Diajukan Oleh</th>
+              <th class="py-3 px-4 text-left font-semibold text-blue-800">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (edits && edits.length > 0) { %>
+              <% edits.forEach(edit => { %>
+                <tr class="border-b last:border-b-0 hover:bg-blue-50">
+                  <td class="py-2 px-4"><%= edit.id %></td>
+                  <td class="py-2 px-4">
+                    <!-- Ganti book.judul menjadi edit.judul -->
+                    <div><strong>Judul:</strong> <%= edit.judul %></div>
+                    <!-- Ganti book.penulis menjadi edit.penulis -->
+                    <div><strong>Penulis:</strong> <%= edit.penulis %></div>
+                  </td>
+                  <td class="py-2 px-4">
+                    <% if (edit.edit_judul) { %><div><strong>Judul Baru:</strong> <%= edit.edit_judul %></div><% } %>
+                    <% if (edit.edit_penulis) { %><div><strong>Penulis Baru:</strong> <%= edit.edit_penulis %></div><% } %>
+                    <% if (edit.sampul_url) { %><div><strong>Sampul:</strong> Ada</div><% } %>
+                  </td>
+                  <td class="py-2 px-4"><%= edit.submitter_name %></td>
+                  <td class="py-2 px-4 space-y-2">
+                    <form action="/admin/book-edits/<%= edit.id %>/approve" method="POST">
+                      <button 
+                        type="submit" 
+                        class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+                      >
+                        Setujui
+                      </button>
+                    </form>
+                    <form action="/admin/book-edits/<%= edit.id %>/reject" method="POST">
+                      <button 
+                        type="submit" 
+                        class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+                      >
+                        Tolak
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="5" class="py-4 text-center text-gray-500">Tidak ada permintaan edit yang menunggu.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Kembali ke Admin Panel -->
+      <div class="mt-8 text-center">
+        <a href="/admin" class="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2">
+          &larr; Kembali ke Admin Panel
         </a>
       </div>
     </div>
