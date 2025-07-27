@@ -210,27 +210,46 @@ exports.getPendingEdits = async (req, res) => {
 exports.approveBookEdit = async (req, res) => {
   const editId = req.params.id;
   try {
-    // Logika setuju edit...
+    const editResult = await db.query('SELECT * FROM book_edits WHERE id = $1', [editId]);
+    const edit = editResult.rows[0];
+
+    // Update tabel `books` dengan perubahan
+    await db.query(
+      `UPDATE books SET 
+        judul = COALESCE($1, judul),
+        penulis = COALESCE($2, penulis),
+        genre = COALESCE($3, genre),
+        tahun_terbit = COALESCE($4, tahun_terbit),
+        deskripsi = COALESCE($5, deskripsi),
+        link_baca_beli = COALESCE($6, link_baca_beli),
+        sampul_url = COALESCE($7, sampul_url)
+      WHERE id = $8`,
+      [edit.judul, edit.penulis, edit.genre, edit.tahun_terbit, edit.deskripsi, edit.link_baca_beli, edit.sampul_url, edit.book_id]
+    );
+
+    // Update status edit
     await db.query('UPDATE book_edits SET status = $1 WHERE id = $2', ['approved', editId]);
+
     req.flash('success_msg', 'Perubahan buku berhasil disetujui.');
   } catch (err) {
     req.flash('error_msg', 'Gagal menyetujui perubahan buku.');
     console.error(err);
   }
+
   res.redirect('/admin/book-edits');
 };
 
-// Tolak edit buku
+// Hapus edit buku
 exports.rejectBookEdit = async (req, res) => {
   const editId = req.params.id;
   try {
-    // Logika tolak edit...
     await db.query('DELETE FROM book_edits WHERE id = $1', [editId]);
     req.flash('success_msg', 'Perubahan buku berhasil ditolak.');
   } catch (err) {
     req.flash('error_msg', 'Gagal menolak perubahan buku.');
     console.error(err);
   }
+
   res.redirect('/admin/book-edits');
 };
 
