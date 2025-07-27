@@ -1,5 +1,6 @@
 const db = require('../config/db');
-const { uploadToCloudinary } = require('../middleware/upload');
+// Gunakan middleware upload yang sudah ada, bukan membuat instance multer baru
+const { upload, uploadErrorHandler } = require('../middleware/upload');
 
 exports.getBooks = async (req, res) => {
     const { search, sort } = req.query;
@@ -7,7 +8,7 @@ exports.getBooks = async (req, res) => {
     // Query dasar
     let query = `
     SELECT b.id, b.judul, b.penulis, b.genre, b.tahun_terbit, b.sampul_url,
-    ROUND((SELECT AVG(rating) FROM reviews WHERE book_id = b.id), 1) AS avg_rating
+    ROUND((SELECT AVG(rating) FROM reviews WHERE book_id = b.id AND status = 'approved'), 1) AS avg_rating
     FROM books b
     WHERE TRUE
   `;
@@ -54,18 +55,21 @@ exports.getBooks = async (req, res) => {
 
     try {
         const result = await db.query(query, params);
+
+        // Proses avg_rating untuk memastikan tipe data yang benar
         const processedBooks = result.rows.map(book => ({
             ...book,
-            avg_rating: book.avg_rating ? parseFloat(book.avg_rating) : null
+            avg_rating: book.avg_rating !== null ? parseFloat(book.avg_rating) : null
         }));
 
-        res.render('index', {
-            books: processedBooks,
-            search: search || '',  // ✅ Tambahkan ini
-            sort: sort || ''      // ✅ Tambahkan ini
+        res.render('index', { // Pastikan file view adalah index.html
+            title: 'Beranda - AKSARARIA',
+            books: processedBooks, // Gunakan array yang sudah diproses
+            search: search || '',
+            sort: sort || ''
         });
     } catch (err) {
-        console.error(err);
+        console.error("Error in getBooks:", err); // Log error detail
         req.flash('error_msg', 'Gagal memuat daftar buku.');
         res.redirect('/');
     }
@@ -78,7 +82,7 @@ exports.getBookDetail = async (req, res) => {
         const bookResult = await db.query(`
       SELECT 
         b.id, b.judul, b.penulis, b.genre, b.tahun_terbit, b.deskripsi, b.sampul_url,
-        b.link_baca_beli, -- ✅ Pastikan kolom ini diambil
+        b.link_baca_beli, b.awards,
         ROUND((SELECT AVG(rating) FROM reviews r WHERE r.book_id = b.id AND r.status = 'approved'), 1) AS avg_rating,
         (SELECT COUNT(*) FROM reviews r WHERE r.book_id = b.id AND r.status = 'approved') AS total_ratings
       FROM books b
@@ -86,6 +90,11 @@ exports.getBookDetail = async (req, res) => {
     `, [bookId]);
 
         const book = bookResult.rows[0];
+
+        if (!book) {
+            req.flash('error_msg', 'Buku tidak ditemukan.');
+            return res.redirect('/');
+        }
 
         // Ambil semua review dengan rating dan ulasan
         const reviewsResult = await db.query(`
@@ -95,36 +104,55 @@ exports.getBookDetail = async (req, res) => {
       ORDER BY created_at DESC
     `, [bookId]);
 
-        res.render('bookDetail', {
+        res.render('bookDetail', { // Pastikan file view adalah bookDetail.html
             book,
             reviews: reviewsResult.rows
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
+        console.error("Error in getBookDetail:", err);
+        req.flash('error_msg', 'Gagal memuat detail buku.');
+        res.redirect('/'); // Redirect ke home jika error
     }
 };
 
 exports.getSubmitBook = (req, res) => {
-    res.render('submitBook', {});
+    res.render('submitBook', {}); // Pastikan file view adalah submitBook.html
 };
 
 exports.postSubmitBook = async (req, res) => {
-    const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli } = req.body; // ✅ Pastikan ada
-    const sampul_url = req.file ? `/uploads/${req.file.filename}` : null;
+    // Pastikan req.file dihandle oleh middleware multer sebelum controller ini dijalankan
+    const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards } = req.body;
+    const userId = req.session.user.id;
+
+    // Tangani URL sampul dari middleware upload
+    let sampul_url = null;
+    if (req.file) {
+        // Jika menggunakan upload lokal seperti di middleware/upload.js
+        sampul_url = `/uploads/${req.file.filename}`;
+        // Jika nanti menggunakan Cloudinary, ganti dengan URL dari Cloudinary
+        // sampul_url = req.file.path; // atau hasil dari uploadToCloudinary
+    }
+
+    // Validasi input
+    if (!judul || !penulis) {
+        req.flash('error_msg', 'Judul dan penulis wajib diisi.');
+        return res.redirect('/books/submit-book');
+    }
 
     try {
-        uploadToCloudinary,
+        // Masukkan ke tabel book_submissions, bukan books langsung
         await db.query(
             `INSERT INTO book_submissions 
-      (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, submitter_id) -- ✅ Pastikan kolom ada
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, req.session.user.id] // ✅ Pastikan nilai ada
+         (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, awards, submitter_id, status) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [judul, penulis, deskripsi || null, genre || null, tahun_terbit || null, sampul_url, link_baca_beli || null, awards || null, userId, 'pending']
         );
-        req.flash('success_msg', 'Buku berhasil dikirim.');
+
+        req.flash('success_msg', 'Buku berhasil dikirim dan menunggu persetujuan admin.');
     } catch (err) {
+        console.error("Error in postSubmitBook:", err);
         req.flash('error_msg', 'Gagal mengirim buku.');
-        console.error(err);
+        // Jangan redirect ke halaman yang sama jika error, atau pastikan error tetap ditampilkan
     }
 
     res.redirect('/books/submit-book');
@@ -136,91 +164,110 @@ exports.getEditBookForm = async (req, res) => {
     const userId = req.session.user.id;
 
     try {
+        // Pastikan buku milik user
         const result = await db.query(`
       SELECT * FROM books 
       WHERE id = $1 AND submitter_id = $2
     `, [bookId, userId]);
 
-        if (result.rows.length === 0) {
-            req.flash('error_msg', 'Anda tidak memiliki akses ke buku ini.');
+        const book = result.rows[0];
+
+        if (!book) {
+            req.flash('error_msg', 'Buku tidak ditemukan atau Anda tidak memiliki akses.');
             return res.redirect('/books/my-books');
         }
 
-        // Cek apakah ada edit yang masih pending
+        // Cek apakah ada edit yang masih pending untuk buku ini oleh user ini
         const editResult = await db.query(`
       SELECT status FROM book_edits 
       WHERE book_id = $1 AND submitter_id = $2 AND status = 'pending'
-      ORDER BY submitted_at DESC LIMIT 1
-    `, [bookId, userId]);
+      ORDER BY created_at DESC LIMIT 1
+    `, [bookId, userId]); // Gunakan created_at, bukan submitted_at yang mungkin typo
 
-        const book = result.rows[0];
         if (editResult.rows.length > 0) {
-            req.flash('error_msg', 'Anda masih memiliki edit yang menunggu persetujuan. Harap tunggu approval sebelum mengajukan perubahan baru.');
+            req.flash('error_msg', 'Anda masih memiliki edit yang menunggu persetujuan untuk buku ini. Harap tunggu approval sebelum mengajukan perubahan baru.');
+            // Redirect ke detail buku atau halaman my-books
+            return res.redirect(`/books/${bookId}`);
         }
 
-        res.render('editBook', { book });
+        res.render('editBook', { book }); // Pastikan file view adalah editBook.html
     } catch (err) {
+        console.error("Error in getEditBookForm:", err);
         req.flash('error_msg', 'Gagal memuat form edit.');
-        console.error(err);
         res.redirect('/books/my-books');
     }
 };
 
-// Tambahkan validasi jumlah edit per hari
 exports.postEditBook = async (req, res) => {
     const bookId = req.params.id;
     const submitterId = req.session.user.id;
-    const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli } = req.body;
-    const sampulUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards } = req.body;
+
+    // Tangani URL sampul dari middleware upload
+    let sampulUrl = null;
+    if (req.file) {
+        sampulUrl = `/uploads/${req.file.filename}`;
+        // Jika menggunakan Cloudinary: sampulUrl = req.file.path;
+    }
 
     try {
-        // Cek apakah ada edit yang masih pending
+        // Cek apakah ada edit yang masih pending untuk buku ini oleh user ini
         const pendingEdit = await db.query(`
-      SELECT status FROM book_edits
+      SELECT id FROM book_edits
       WHERE book_id = $1 AND submitter_id = $2 AND status = 'pending'
       LIMIT 1
     `, [bookId, submitterId]);
 
         if (pendingEdit.rows.length > 0) {
-            req.flash('error_msg', 'Anda masih memiliki edit yang menunggu persetujuan. Harap tunggu approval sebelum mengajukan perubahan baru.');
+            req.flash('error_msg', 'Anda masih memiliki edit yang menunggu persetujuan untuk buku ini. Harap tunggu approval sebelum mengajukan perubahan baru.');
             return res.redirect(`/books/edit/${bookId}`);
         }
 
-        // Cek apakah ada perubahan
-        const book = await db.query('SELECT * FROM books WHERE id = $1', [bookId]);
+        // Dapatkan data buku asli untuk perbandingan
+        const bookResult = await db.query('SELECT * FROM books WHERE id = $1', [bookId]);
+        const book = bookResult.rows[0];
 
+        if (!book) {
+            req.flash('error_msg', 'Buku tidak ditemukan.');
+            return res.redirect('/books/my-books');
+        }
+
+        // Cek apakah ada perubahan yang signifikan
         const hasChanges =
-            judul !== book.rows[0].judul ||
-            penulis !== book.rows[0].penulis ||
-            (genre && genre !== book.rows[0].genre) ||
-            (tahun_terbit && tahun_terbit !== book.rows[0].tahun_terbit) ||
-            (deskripsi && deskripsi !== book.rows[0].deskripsi) ||
-            (link_baca_beli && link_baca_beli !== book.rows[0].link_baca_beli) ||
-            sampulUrl;
+            (judul && judul !== book.judul) ||
+            (penulis && penulis !== book.penulis) ||
+            (genre && genre !== book.genre) ||
+            (tahun_terbit && tahun_terbit !== book.tahun_terbit) ||
+            (deskripsi && deskripsi !== book.deskripsi) ||
+            (link_baca_beli && link_baca_beli !== book.link_baca_beli) ||
+            (awards && awards !== book.awards) || // Bandingkan string/array jika perlu
+            (sampulUrl); // Jika ada file baru diupload
 
         if (!hasChanges) {
             req.flash('error_msg', 'Tidak ada perubahan yang diajukan.');
             return res.redirect(`/books/edit/${bookId}`);
         }
 
-        // Simpan edit
+        // Simpan edit ke tabel book_edits
         await db.query(
             `INSERT INTO book_edits 
-      (book_id, submitter_id, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, sampul_url, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-            [bookId, submitterId, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, sampulUrl, 'pending']
+      (book_id, submitter_id, edit_judul, edit_penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards, sampul_url, status) -- Gunakan edit_judul, edit_penulis
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+            [bookId, submitterId, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards, sampulUrl, 'pending']
         );
 
         req.flash('success_msg', 'Perubahan buku berhasil diajukan dan menunggu persetujuan admin.');
     } catch (err) {
+        console.error("Error in postEditBook:", err);
         req.flash('error_msg', 'Gagal mengajukan perubahan buku.');
-        console.error(err);
+        // Jangan redirect ke halaman yang sama jika error, atau pastikan error tetap ditampilkan
     }
 
-    res.redirect('/books/' + bookId);
+    // Redirect ke detail buku setelah submit
+    res.redirect(`/books/${bookId}`);
 };
 
-// Tampilkan buku yang disetujui milik member
+// Tampilkan buku yang disetujui milik member (dari tabel books)
 exports.getMyApprovedBooks = async (req, res) => {
     const userId = req.session.user.id;
     try {
@@ -232,15 +279,16 @@ exports.getMyApprovedBooks = async (req, res) => {
         b.created_at,
         (SELECT status FROM book_edits 
          WHERE book_id = b.id AND submitter_id = $1 
-         ORDER BY submitted_at DESC LIMIT 1) AS edit_status
+         ORDER BY created_at DESC LIMIT 1) AS edit_status
       FROM books b
       WHERE b.submitter_id = $1
-    `, [userId]);
+      ORDER BY b.created_at DESC
+    `, [userId]); // Tambahkan ORDER BY
 
-        res.render('myBooks', { books: result.rows });
+        res.render('myBooks', { books: result.rows }); // Pastikan file view adalah myBooks.html
     } catch (err) {
+        console.error("Error in getMyApprovedBooks:", err);
         req.flash('error_msg', 'Gagal memuat daftar buku Anda.');
-        console.error(err);
         res.redirect('/');
     }
 };
