@@ -1,22 +1,41 @@
-module.exports = function (upload) {
-  const express = require('express');
-  const router = express.Router();
-  const bookController = require('../controllers/bookController');
-  const { ensureAuthenticated, ensureRole, ensureDailyBookLimit, ensureBookOwnership, ensureDailyEditLimit } = require('../middleware/authMiddleware');
-  const uploadMiddleware = require('../middleware/uploadMiddleware');
+const express = require('express');
+const router = express.Router();
+const bookController = require('../controllers/bookController');
+const { ensureAuthenticated, ensureRole, ensureDailyBookLimit, ensureBookOwnership } = require('../middleware/authMiddleware');
+const { upload, uploadErrorHandler } = require('../middleware/upload');
 
-  router.get('/submit-book', ensureAuthenticated, ensureRole('member'), bookController.getSubmitBook);
-  router.post('/submit', ensureAuthenticated, ensureRole('member'), ensureDailyBookLimit, upload.single('sampul'), bookController.postSubmitBook);
+// --- Route yang BISA diakses TANPA login ---
+// Detail buku - TIDAK memerlukan autentikasi
+router.get('/:id', bookController.getBookDetail);
 
-  // Tampilkan buku yang disetujui oleh member
-  router.get('/my-books', ensureAuthenticated, ensureRole('member'), bookController.getMyApprovedBooks);
+// --- Route yang HARUS LOGIN dan memiliki role 'member' ---
+// Tampilkan form submit buku
+router.get('/submit-book', ensureAuthenticated, ensureRole('member'), bookController.getSubmitBook);
 
-  // Detail buku
-  router.get('/:id', bookController.getBookDetail);
+// Proses submit buku dengan batas harian
+router.post('/submit-book',
+  ensureAuthenticated,
+  ensureRole('member'),
+  ensureDailyBookLimit,
+  upload.single('sampul'),
+  uploadErrorHandler,
+  bookController.postSubmitBook
+);
 
-  // Gunakan middleware di route edit
-  router.get('/edit/:id', ensureAuthenticated, ensureBookOwnership, bookController.getEditBookForm);
-  router.post('/edit/:id', ensureAuthenticated, ensureBookOwnership, ensureDailyEditLimit, upload.single('sampul'), bookController.postEditBook);
-  
-  return router;
-};
+// Tampilkan buku yang disetujui milik member
+router.get('/my-books', ensureAuthenticated, ensureRole('member'), bookController.getMyApprovedBooks);
+
+// --- Route untuk Edit Buku (Harus login dan memiliki akses) ---
+// Tampilkan form edit buku
+router.get('/edit/:id', ensureAuthenticated, ensureBookOwnership, bookController.getEditBookForm);
+
+// Proses edit buku
+router.post('/edit/:id',
+  ensureAuthenticated,
+  ensureBookOwnership,
+  upload.single('sampul'),
+  uploadErrorHandler,
+  bookController.postEditBook
+);
+
+module.exports = router;

@@ -17,9 +17,10 @@
         <div id="sidebar-nav" class="p-4 space-y-4">
             <a href="/" class="block text-blue-600 hover:text-blue-800 font-semibold">🏠 Beranda</a>
             <% if (session && session.user) { %>
-                 <% if (session.user.role === 'admin') { %>
+                <% if (session.user.role === 'admin') { %>
                     <a href="/admin/pending-books" class="block text-blue-600 hover:text-blue-800 font-semibold">🛠️ Admin Panel</a>
                     <a href="/admin/users" class="block text-blue-600 hover:text-blue-800 font-semibold">👥 Kelola Pengguna</a>
+                    <a href="/admin/book-edits" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Permintaan Edit</a>
                 <% } else if (session.user.role === 'member') { %>
                     <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
                     <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>
@@ -52,9 +53,10 @@
         <div class="p-4 space-y-4">
             <a href="/" class="block text-blue-600 hover:text-blue-800 font-semibold">🏠 Beranda</a>
             <% if (session && session.user) { %>
-                 <% if (session.user.role === 'admin') { %>
+                <% if (session.user.role === 'admin') { %>
                     <a href="/admin/pending-books" class="block text-blue-600 hover:text-blue-800 font-semibold">🛠️ Admin Panel</a>
                     <a href="/admin/users" class="block text-blue-600 hover:text-blue-800 font-semibold">👥 Kelola Pengguna</a>
+                    <a href="/admin/book-edits" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Permintaan Edit</a>
                 <% } else if (session.user.role === 'member') { %>
                     <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
                     <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>
