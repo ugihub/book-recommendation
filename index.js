@@ -15,6 +15,8 @@ app.engine('html', (filePath, options, callback) => {
   ejs.renderFile(filePath, options, { async: false }, callback);
 });
 app.set('view engine', 'html');
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // 2. Middleware dasar
 app.use(express.static('public'));
