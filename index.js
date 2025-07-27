@@ -11,8 +11,10 @@ const path = require('path');
 const app = express();
 
 // 1. Konfigurasi view engine
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.engine('html', (filePath, options, callback) => {
+  ejs.renderFile(filePath, options, { async: false }, callback);
+});
+app.set('view engine', 'html');
 
 // 2. Middleware dasar
 app.use(express.static('public'));
@@ -111,17 +113,7 @@ app.use((req, res) => {
     });
 });
 
-// 11. Error handling 500
-app.use((err, req, res, next) => {
-    console.error('Server Error:', err.stack);
-    req.flash('error_msg', 'Terjadi kesalahan pada server.');
-    res.status(500).render('500', {
-        title: 'Kesalahan Server - AKSARARIA',
-        session: req.session
-    });
-});
-
-// 12. Jalankan server
+// 11. Jalankan server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🟢 Server AKSARARIA berjalan di http://localhost:${PORT}`);
