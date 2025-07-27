@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const { uploadToCloudinary } = require('../middleware/upload');
+const { upload,uploadToCloudinary } = require('../middleware/upload');
 
 exports.getBooks = async (req, res) => {
     const { search, sort } = req.query;
@@ -122,6 +122,7 @@ exports.postSubmitBook = [
                 return res.redirect('/books/submit-book');
             }
 
+            uploadToCloudinary,
             // Simpan ke database (termasuk awards)
             await db.query(
                 `INSERT INTO book_submissions 
