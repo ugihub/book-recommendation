@@ -184,6 +184,7 @@ exports.getPendingEdits = async (req, res) => {
       ORDER BY e.created_at DESC
     `);
 
+    // Pastikan penulisan path konsisten (gunakan slash, bukan backslash)
     res.render('admin/bookEdits', {
       title: 'Admin Panel - Permintaan Edit Buku',
       edits: result.rows
