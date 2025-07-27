@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { uploadToCloudinary } = require('../middleware/upload');
 
 exports.getBooks = async (req, res) => {
     const { search, sort } = req.query;
@@ -113,6 +114,7 @@ exports.postSubmitBook = async (req, res) => {
     const sampul_url = req.file ? `/uploads/${req.file.filename}` : null;
 
     try {
+        uploadToCloudinary,
         await db.query(
             `INSERT INTO book_submissions 
       (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, submitter_id) -- ✅ Pastikan kolom ada
