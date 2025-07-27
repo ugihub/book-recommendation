@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const { upload,uploadToCloudinary } = require('../middleware/upload');
+const { upload,uploadToCloudinary,uploadErrorHandler } = require('../middleware/upload');
 
 exports.getBooks = async (req, res) => {
     const { search, sort } = req.query;
