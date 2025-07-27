@@ -202,7 +202,7 @@ exports.getPendingEdits = async (req, res) => {
     `);
 
     // Perbaikan: Sesuaikan nama view dengan struktur folder
-    res.render('admin/bookEdits', {
+    res.render('editBook', {
       title: 'Admin Panel - Permintaan Edit Buku',
       edits: result.rows
     });
