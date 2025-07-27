@@ -5,7 +5,7 @@ const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWA
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: isProduction ? {
+    ssl: {
         rejectUnauthorized: false
     } : false, // Nonaktifkan SSL di lingkungan development
     max: 20, // Jumlah koneksi maksimum
