@@ -58,23 +58,6 @@ exports.rejectBook = async (req, res) => {
   res.redirect('/admin/pending-books');
 };
 
-exports.deleteBook = async (req, res) => {
-  const bookId = req.params.id;
-
-  try {
-    // Hapus semua ulasan dan rating terkait
-    await db.query('DELETE FROM reviews WHERE book_id = $1', [bookId]);
-    await db.query('DELETE FROM books WHERE id = $1', [bookId]);
-
-    req.flash('success_msg', 'Buku dan semua ulasan berhasil dihapus.');
-  } catch (err) {
-    req.flash('error_msg', 'Gagal menghapus buku.');
-    console.error(err);
-  }
-
-  res.redirect('/admin/approved-books');
-};
-
 // Suspend member selama 1 hari (misalnya)
 exports.suspendMember = async (req, res) => {
   const userId = req.params.id;
@@ -193,15 +176,22 @@ exports.deleteBook = async (req, res) => {
 exports.getPendingEdits = async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT e.id, b.judul, e.judul AS edit_judul, e.penulis AS edit_penulis, e.status
+      SELECT e.*, b.judul, b.penulis, b.sampul_url, u.nama AS submitter_name
       FROM book_edits e
       JOIN books b ON e.book_id = b.id
+      JOIN users u ON e.submitter_id = u.id
       WHERE e.status = 'pending'
+      ORDER BY e.created_at DESC
     `);
-    res.render('adminPendingEdits', { edits: result.rows });
+
+    res.render('admin/bookEdits', {
+      title: 'Admin Panel - Permintaan Edit Buku',
+      edits: result.rows
+    });
   } catch (err) {
+    console.error('Error fetching pending edits:', err);
     req.flash('error_msg', 'Gagal memuat daftar edit buku.');
-    res.redirect('/admin/pending-books');
+    res.redirect('/admin');
   }
 };
 
