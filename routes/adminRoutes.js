@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { ensureAuthenticated, ensureRole } = require('../middleware/authMiddleware');
+const { upload, uploadErrorHandler } = require('../middleware/upload');
 
 // Panel Admin
 router.get('/admin/pending-books', ensureAuthenticated, ensureRole('admin'), adminController.getPendingBooks);
@@ -20,9 +21,13 @@ router.post('/suspend-member/:id', ensureAuthenticated, ensureRole('admin'), adm
 router.post('/demote-member/:id', ensureAuthenticated, ensureRole('admin'), adminController.demoteMember);
 
 // Routes edit
-router.get('/book-edits', ensureAuthenticated, ensureRole('admin'), adminController.getPendingEdits);
+router.get('/book-edits', adminController.getPendingEdits);
 router.get('/book-edits/:id', adminController.getEditBook);
-router.post('/approve-edit/:id', ensureAuthenticated, ensureRole('admin'), adminController.approveBookEdit);
-router.post('/reject-edit/:id', ensureAuthenticated, ensureRole('admin'), adminController.rejectBookEdit);
+router.post('/book-edits/:id/approve',
+    upload.single('sampul'),  // Middleware upload
+    adminController.approveEdit,  // Handler harus berupa fungsi
+    uploadErrorHandler  // Error handler
+);
+router.post('/book-edits/:id/reject', adminController.rejectEdit);
 
 module.exports = router;

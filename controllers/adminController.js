@@ -252,50 +252,82 @@ exports.getEditBook = async (req, res) => {
 };
 
 // Setujui edit buku
-exports.approveBookEdit = async (req, res) => {
+exports.approveEdit = async (req, res) => {
   const editId = req.params.id;
+
   try {
+    // Ambil data edit
     const editResult = await db.query('SELECT * FROM book_edits WHERE id = $1', [editId]);
     const edit = editResult.rows[0];
 
-    // Update tabel `books` dengan perubahan
-    await db.query(
-      `UPDATE books SET 
-        judul = COALESCE($1, judul),
-        penulis = COALESCE($2, penulis),
-        genre = COALESCE($3, genre),
-        tahun_terbit = COALESCE($4, tahun_terbit),
-        deskripsi = COALESCE($5, deskripsi),
-        link_baca_beli = COALESCE($6, link_baca_beli),
-        sampul_url = COALESCE($7, sampul_url)
-      WHERE id = $8`,
-      [edit.judul, edit.penulis, edit.genre, edit.tahun_terbit, edit.deskripsi, edit.link_baca_beli, edit.sampul_url, edit.book_id]
-    );
+    if (!edit) {
+      req.flash('error_msg', 'Permintaan edit tidak ditemukan');
+      return res.redirect('/admin/book-edits');
+    }
 
     // Update status edit
-    await db.query('UPDATE book_edits SET status = $1 WHERE id = $2', ['approved', editId]);
+    await db.query(
+      'UPDATE book_edits SET status = $1, approved_by = $2 WHERE id = $3',
+      ['approved', req.session.user.id, editId]
+    );
 
-    req.flash('success_msg', 'Perubahan buku berhasil disetujui.');
+    // Update buku dengan perubahan
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (edit.edit_judul) {
+      updates.push(`judul = $${paramCount}`);
+      values.push(edit.edit_judul);
+      paramCount++;
+    }
+
+    if (edit.edit_penulis) {
+      updates.push(`penulis = $${paramCount}`);
+      values.push(edit.edit_penulis);
+      paramCount++;
+    }
+
+    if (edit.sampul_url) {
+      updates.push(`sampul_url = $${paramCount}`);
+      values.push(edit.sampul_url);
+      paramCount++;
+    }
+
+    if (updates.length > 0) {
+      values.push(edit.book_id);
+      await db.query(
+        `UPDATE books SET ${updates.join(', ')} WHERE id = $${paramCount}`,
+        values
+      );
+    }
+
+    req.flash('success_msg', 'Permintaan edit berhasil disetujui');
+    res.redirect('/admin/book-edits');
   } catch (err) {
-    req.flash('error_msg', 'Gagal menyetujui perubahan buku.');
-    console.error(err);
+    console.error('Error approving edit:', err);
+    req.flash('error_msg', 'Gagal menyetujui permintaan edit');
+    res.redirect('/admin/book-edits');
   }
-
-  res.redirect('/admin/book-edits');
 };
 
-// Hapus edit buku
-exports.rejectBookEdit = async (req, res) => {
+// Pastikan fungsi rejectEdit juga didefinisikan
+exports.rejectEdit = async (req, res) => {
   const editId = req.params.id;
-  try {
-    await db.query('DELETE FROM book_edits WHERE id = $1', [editId]);
-    req.flash('success_msg', 'Perubahan buku berhasil ditolak.');
-  } catch (err) {
-    req.flash('error_msg', 'Gagal menolak perubahan buku.');
-    console.error(err);
-  }
 
-  res.redirect('/admin/book-edits');
+  try {
+    await db.query(
+      'UPDATE book_edits SET status = $1, approved_by = $2 WHERE id = $3',
+      ['rejected', req.session.user.id, editId]
+    );
+
+    req.flash('success_msg', 'Permintaan edit berhasil ditolak');
+    res.redirect('/admin/book-edits');
+  } catch (err) {
+    console.error('Error rejecting edit:', err);
+    req.flash('error_msg', 'Gagal menolak permintaan edit');
+    res.redirect('/admin/book-edits');
+  }
 };
 
 exports.getMyBooks = async (req, res) => {
