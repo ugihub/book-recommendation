@@ -200,11 +200,54 @@ exports.getPendingEdits = async (req, res) => {
       WHERE e.status = 'pending'
       ORDER BY e.created_at DESC
     `);
-    
+
+    // Merender DAFTAR permintaan edit, bukan halaman edit buku spesifik
+    res.render('admin/bookEdits', {
+      title: 'Admin Panel - Permintaan Edit Buku',
+      edits: result.rows
+    });
   } catch (err) {
     console.error('Error fetching pending edits:', err);
     req.flash('error_msg', 'Gagal memuat daftar permintaan edit.');
     res.redirect('/');
+  }
+};
+
+// 2. Handler untuk menampilkan HALAMAN EDIT spesifik
+exports.getEditBook = async (req, res) => {
+  const editId = req.params.id;
+
+  try {
+    const result = await db.query(`
+      SELECT e.*, b.judul, b.penulis, b.sampul_url, u.nama AS submitter_name
+      FROM book_edits e
+      JOIN books b ON e.book_id = b.id
+      JOIN users u ON e.submitter_id = u.id
+      WHERE e.id = $1
+    `, [editId]);
+
+    if (result.rows.length === 0) {
+      req.flash('error_msg', 'Permintaan edit tidak ditemukan');
+      return res.redirect('/admin/book-edits');
+    }
+
+    const edit = result.rows[0];
+
+    // Sekarang kita menyediakan variabel book yang dibutuhkan template
+    res.render('admin/editBook', {
+      title: `Edit Buku: ${edit.judul}`,
+      book: {
+        id: edit.book_id,
+        judul: edit.judul,
+        penulis: edit.penulis,
+        sampul_url: edit.sampul_url
+      },
+      edit: edit
+    });
+  } catch (err) {
+    console.error('Error fetching edit details:', err);
+    req.flash('error_msg', 'Gagal memuat detail permintaan edit.');
+    res.redirect('/admin/book-edits');
   }
 };
 
