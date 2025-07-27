@@ -1,4 +1,3 @@
-// controllers/bookController.js
 const db = require('../config/db');
 const { uploadToCloudinary } = require('../middleware/upload');
 
@@ -8,7 +7,7 @@ exports.getBooks = async (req, res) => {
     // Query dasar
     let query = `
     SELECT b.id, b.judul, b.penulis, b.genre, b.tahun_terbit, b.sampul_url,
-    ROUND((SELECT AVG(rating) FROM reviews WHERE book_id = b.id AND status = 'approved'), 1) AS avg_rating
+    ROUND((SELECT AVG(rating) FROM reviews WHERE book_id = b.id), 1) AS avg_rating
     FROM books b
     WHERE TRUE
   `;
@@ -79,7 +78,7 @@ exports.getBookDetail = async (req, res) => {
         const bookResult = await db.query(`
       SELECT 
         b.id, b.judul, b.penulis, b.genre, b.tahun_terbit, b.deskripsi, b.sampul_url,
-        b.link_baca_beli, b.awards, -- ✅ Tambahkan awards
+        b.link_baca_beli, -- ✅ Pastikan kolom ini diambil
         ROUND((SELECT AVG(rating) FROM reviews r WHERE r.book_id = b.id AND r.status = 'approved'), 1) AS avg_rating,
         (SELECT COUNT(*) FROM reviews r WHERE r.book_id = b.id AND r.status = 'approved') AS total_ratings
       FROM books b
@@ -111,26 +110,18 @@ exports.getSubmitBook = (req, res) => {
 };
 
 exports.postSubmitBook = async (req, res) => {
-    const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards } = req.body; // ✅ Tambahkan awards
-    const userId = req.session.user.id; // ✅ Dapatkan userId dari session
+    const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli } = req.body; // ✅ Pastikan ada
     const sampul_url = req.file ? `/uploads/${req.file.filename}` : null;
 
-    // Validasi input
-    if (!judul || !penulis) {
-        req.flash('error_msg', 'Judul dan penulis wajib diisi.');
-        return res.redirect('/books/submit-book');
-    }
-
     try {
-        // ✅ Perbaiki query INSERT
+        uploadToCloudinary,
         await db.query(
             `INSERT INTO book_submissions 
-         (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, awards, submitter_id, status) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-            [judul, penulis, deskripsi || null, genre || null, tahun_terbit || null, sampul_url, link_baca_beli || null, awards || null, userId, 'pending']
+      (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, submitter_id) -- ✅ Pastikan kolom ada
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, req.session.user.id] // ✅ Pastikan nilai ada
         );
-
-        req.flash('success_msg', 'Buku berhasil dikirim dan menunggu persetujuan admin.');
+        req.flash('success_msg', 'Buku berhasil dikirim.');
     } catch (err) {
         req.flash('error_msg', 'Gagal mengirim buku.');
         console.error(err);
@@ -179,7 +170,7 @@ exports.getEditBookForm = async (req, res) => {
 exports.postEditBook = async (req, res) => {
     const bookId = req.params.id;
     const submitterId = req.session.user.id;
-    const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards } = req.body; // ✅ Tambahkan awards
+    const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli } = req.body;
     const sampulUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     try {
@@ -205,7 +196,6 @@ exports.postEditBook = async (req, res) => {
             (tahun_terbit && tahun_terbit !== book.rows[0].tahun_terbit) ||
             (deskripsi && deskripsi !== book.rows[0].deskripsi) ||
             (link_baca_beli && link_baca_beli !== book.rows[0].link_baca_beli) ||
-            (awards && awards !== book.rows[0].awards) || // ✅ Tambahkan awards
             sampulUrl;
 
         if (!hasChanges) {
@@ -216,9 +206,9 @@ exports.postEditBook = async (req, res) => {
         // Simpan edit
         await db.query(
             `INSERT INTO book_edits 
-      (book_id, submitter_id, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards, sampul_url, status) -- ✅ Tambahkan awards
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-            [bookId, submitterId, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards, sampulUrl, 'pending'] // ✅ Tambahkan awards
+      (book_id, submitter_id, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, sampul_url, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [bookId, submitterId, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, sampulUrl, 'pending']
         );
 
         req.flash('success_msg', 'Perubahan buku berhasil diajukan dan menunggu persetujuan admin.');
