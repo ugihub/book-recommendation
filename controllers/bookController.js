@@ -96,8 +96,11 @@ exports.getBooks = async (req, res) => {
 
             reviews: reviewsResult.rows
         });
-    } catch (err) {
-@@ -62,31 +105,140 @@
+    (err) {
+        console.error(err);
+        req.flash('error_msg', 'Gagal memuat detail buku.');
+        res.redirect('/books');
+    }
 };
 
 exports.getSubmitBook = (req, res) => {
