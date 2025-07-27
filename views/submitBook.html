@@ -1,418 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Submit Buku - AKSARARIA</title>
-    <link rel="icon" type="image/x-icon" href="/images/aksararia.png" />
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Submit Buku</title>
   </head>
-  <body class="bg-blue-50 text-gray-800 font-sans">
-    <!-- Sidebar Desktop -->
-    <div
-      id="desktop-sidebar"
-      class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg hidden md:block z-10 transition-all duration-300"
-    >
-      <!-- Logo -->
-      <div
-        id="sidebar-logo"
-        class="flex items-center justify-center h-16 border-b border-blue-200"
+  <body>
+    <h2>Submit Buku Baru</h2>
+
+    <% if (error_msg) { %>
+    <div style="color: red"><%= error_msg %></div>
+    <% } %>
+
+    <!-- Tambahkan enctype untuk upload -->
+    <form action="/books/submit" method="POST" enctype="multipart/form-data">
+      <label>Judul:</label>
+      <input type="text" name="judul" required /><br /><br />
+
+      <label>Penulis:</label>
+      <input type="text" name="penulis" required /><br /><br />
+
+      <label>Genre:</label>
+      <input type="text" name="genre" /><br /><br />
+
+      <label>Tahun Terbit:</label>
+      <input type="number" name="tahun_terbit" /><br /><br />
+
+      <label>Penghargaan (opsional):</label>
+      <input
+        type="text"
+        name="awards"
+        placeholder="Misal: Pulitzer Prize, Booker Prize"
+      />
+      <small
+        >Masukkan penghargaan jika buku ini pernah mendapatkannya. Pisahkan
+        dengan koma jika lebih dari satu.</small
       >
-        <img
-          src="/images/aksararia.png"
-          alt="AKSARARIA Logo"
-          class="h-12 object-contain"
-        />
-      </div>
 
-      <!-- Navigasi -->
-      <div id="sidebar-nav" class="p-4 space-y-4">
-        <a
-          href="/"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🏠 Beranda</a
-        >
-        <% if (session && session.user) { %>
-        <a
-          href="/profile"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >👤 Profil</a
-        >
-        <% if (session.user.role === 'admin') { %>
-        <a
-          href="/admin/pending-books"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🛠️ Admin Panel</a
-        >
-        <a
-          href="/admin/users"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >👥 Kelola Pengguna</a
-        >
-        <% } else if (session.user.role === 'member') { %>
-        <a
-          href="/books/submit-book"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >📚 Submit Buku</a
-        >
-        <a
-          href="/books/my-books"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >📖 Buku Saya</a
-        >
-        <a
-          href="/logout"
-          class="block text-red-600 hover:text-red-800 font-semibold"
-          >🚪 Logout</a
-        >
-        <% } %> <% } else { %>
-        <a
-          href="/login"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🔑 Login</a
-        >
-        <a
-          href="/register"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >📝 Daftar</a
-        >
-        <% } %>
-      </div>
+      <label>Deskripsi:</label><br />
+      <textarea name="deskripsi" rows="5" cols="40"></textarea><br /><br />
 
-      <!-- Tombol Toggle -->
-      <button
-        id="toggle-sidebar"
-        class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-blue-600 hover:text-blue-800 p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-all"
-      >
-        <svg
-          id="toggle-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            id="toggle-path"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-      </button>
-    </div>
+      <label>Link Baca/Beli (Opsional):</label>
+      <input type="text" name="link_baca_beli" /><br /><br />
 
-    <!-- Konten Utama -->
-    <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
-      <div class="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
-        <h2
-          class="text-xl sm:text-2xl font-bold text-center text-blue-800 mb-6"
-        >
-          Submit Buku Baru
-        </h2>
+      <!-- Input Upload Gambar -->
+      <label>Sampul Buku:</label>
+      <input type="file" name="sampul" accept="image/*" /><br /><br />
 
-        <form
-          action="/books/submit-book"
-          method="POST"
-          enctype="multipart/form-data"
-          class="space-y-4"
-        >
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Judul</label
-            >
-            <input
-              type="text"
-              name="judul"
-              required
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Penulis</label
-            >
-            <input
-              type="text"
-              name="penulis"
-              required
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Genre</label
-            >
-            <input
-              type="text"
-              name="genre"
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Tahun Terbit</label
-            >
-            <input
-              type="number"
-              name="tahun_terbit"
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Penghargaan (Opsional)</label
-            >
-            <textarea
-              name="awards"
-              rows="3"
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50"
-              placeholder="Contoh: Karya Terbaik 2023, Penghargaan Sastra Nasional, dll. Pisahkan dengan baris baru."
-            ></textarea>
-            <small class="text-gray-500"
-              >Masukkan penghargaan jika buku ini pernah mendapatkannya.
-              Pisahkan dengan koma jika lebih dari satu.</small
-            >
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Deskripsi</label
-            >
-            <textarea
-              name="deskripsi"
-              rows="5"
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            ></textarea>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Link Baca/Beli (Opsional)</label
-            >
-            <input
-              type="text"
-              name="link_baca_beli"
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Sampul Buku</label
-            >
-            <input
-              type="file"
-              name="sampul"
-              accept="image/*"
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <button
-            type="submit"
-            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-          >
-            Kirim Buku
-          </button>
-        </form>
-        <div class="mt-6 text-center">
-          <a href="/" class="text-blue-500 hover:text-blue-700 font-semibold"
-            >&larr; Kembali ke Beranda</a
-          >
-        </div>
-      </div>
-    </div>
-
-    <!-- Sidebar Mobile -->
-    <div
-      id="mobile-sidebar"
-      class="md:hidden fixed inset-0 z-50 bg-white w-64 shadow-lg transform -translate-x-full transition-transform duration-300"
-    >
-      <div
-        class="flex justify-between items-center p-4 border-b border-blue-200"
-      >
-        <h3 class="text-white font-bold text-lg">Navigasi</h3>
-        <button
-          id="close-mobile-sidebar"
-          class="text-gray-500 hover:text-gray-700 text-2xl"
-        >
-          &times;
-        </button>
-      </div>
-      <div class="p-4 space-y-4">
-        <a
-          href="/"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🏠 Beranda</a
-        >
-        <% if (session && session.user) { %>
-        <a
-          href="/profile"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >👤 Profil</a
-        >
-        <a
-          href="/logout"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🚪 Logout</a
-        >
-        <% if (session.user.role === 'admin') { %>
-        <a
-          href="/admin/pending-books"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🛠️ Admin Panel</a
-        >
-        <a
-          href="/admin/users"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >👥 Kelola Pengguna</a
-        >
-        <% } else if (session.user.role === 'member') { %>
-        <a
-          href="/books/submit-book"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >📚 Submit Buku</a
-        >
-        <a
-          href="/books/my-books"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >📖 Buku Saya</a
-        >
-        <% } %> <% } else { %>
-        <a
-          href="/login"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🔑 Login</a
-        >
-        <a
-          href="/register"
-          class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >📝 Daftar</a
-        >
-        <% } %>
-      </div>
-    </div>
-
-    <!-- Tombol Hamburger untuk Mobile -->
-    <button
-      id="mobile-menu-toggle"
-      class="md:hidden fixed bottom-4 right-4 z-40 bg-blue-500 text-white p-3 rounded-full shadow-md hover:shadow-lg"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M4 6h16M4 12h16M4 18h16"
-        />
-      </svg>
-    </button>
-
-    <!-- Script Toggle Sidebar -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // --- Script untuk Sidebar Mobile ---
-        const menuToggle = document.getElementById("mobile-menu-toggle");
-        const closeSidebar = document.getElementById("close-mobile-sidebar");
-        const mobileSidebar = document.getElementById("mobile-sidebar");
-
-        if (menuToggle && closeSidebar && mobileSidebar) {
-          menuToggle.addEventListener("click", () => {
-            mobileSidebar.classList.remove("-translate-x-full", "hidden");
-            mobileSidebar.classList.add("translate-x-0");
-          });
-
-          closeSidebar.addEventListener("click", () => {
-            mobileSidebar.classList.add("-translate-x-full");
-            mobileSidebar.classList.remove("translate-x-0");
-            setTimeout(() => {
-              mobileSidebar.classList.add("hidden");
-            }, 300);
-          });
-
-          // Tutup sidebar saat klik di luar
-          document.addEventListener("click", (e) => {
-            if (
-              !mobileSidebar.contains(e.target) &&
-              !e.target.closest("#mobile-menu-toggle")
-            ) {
-              mobileSidebar.classList.add("-translate-x-full");
-              mobileSidebar.classList.remove("translate-x-0");
-              setTimeout(() => {
-                mobileSidebar.classList.add("hidden");
-              }, 300);
-            }
-          });
-        } else {
-          console.warn("Elemen sidebar mobile tidak ditemukan.");
-        }
-
-        // --- Script untuk Sidebar Desktop (Minimize/Expand) ---
-        const toggleBtn = document.getElementById("toggle-sidebar");
-        const sidebar = document.getElementById("desktop-sidebar");
-        const mainContent = document.getElementById("main-content");
-        const sidebarLogo = document.getElementById("sidebar-logo");
-        const sidebarNav = document.getElementById("sidebar-nav");
-        const iconPath = document.getElementById("toggle-path");
-
-        if (
-          toggleBtn &&
-          sidebar &&
-          mainContent &&
-          sidebarLogo &&
-          sidebarNav &&
-          iconPath
-        ) {
-          let isCollapsed = false;
-
-          toggleBtn.addEventListener("click", () => {
-            isCollapsed = !isCollapsed;
-
-            if (isCollapsed) {
-              // Sidebar collapse
-              sidebar.classList.remove("w-64");
-              sidebar.classList.add("w-16");
-              mainContent.classList.remove("md:ml-64");
-              mainContent.classList.add("md:ml-16");
-
-              // Sembunyikan navigasi dan sesuaikan logo
-              sidebarNav.classList.add("hidden");
-              sidebarLogo.classList.add(
-                "h-16",
-                "justify-center",
-                "items-center"
-              );
-
-              // Ubah ikon toggle
-              iconPath.setAttribute("d", "M9 5l7 7-7 7");
-            } else {
-              // Sidebar expand
-              sidebar.classList.remove("w-16");
-              sidebar.classList.add("w-64");
-              mainContent.classList.remove("md:ml-16");
-              mainContent.classList.add("md:ml-64");
-
-              // Tampilkan navigasi dan sesuaikan logo
-              sidebarNav.classList.remove("hidden");
-              sidebarLogo.classList.remove(
-                "h-16",
-                "justify-center",
-                "items-center"
-              );
-
-              // Ubah ikon toggle
-              iconPath.setAttribute("d", "M15 19l-7-7 7-7");
-            }
-          });
-        } else {
-          console.warn("Elemen sidebar desktop atau toggle tidak ditemukan.");
-        }
-      });
-    </script>
+      <button type="submit">Kirim Buku</button>
+    </form>
   </body>
 </html>

@@ -1,245 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel - Permintaan Edit Buku | AKSARARIA</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Admin - Edit Buku Menunggu</title>
 </head>
-<body class="bg-blue-50 text-gray-800 font-sans">
-  <!-- Sidebar Desktop -->
-  <div id="desktop-sidebar" class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg md:block hidden z-10 transition-all duration-300">
-    <!-- Logo -->
-    <div id="sidebar-logo" class="flex items-center justify-center h-16 border-b border-blue-200">
-      <img src="/images/aksararia.png" alt="AKSARARIA Logo" class="h-12 object-contain" />
-    </div>
-    
-    <!-- Navigasi -->
-    <div id="sidebar-nav" class="p-4 space-y-4">
-      <a href="/" class="block text-blue-600 hover:text-blue-800 font-semibold">🏠 Beranda</a>
-      
-      <% if (session && session.user) { %>
-        <a href="/profile" class="block text-blue-600 hover:text-blue-800 font-semibold">👤 Profil</a>
-        
-        <% if (session.user.role === 'admin') { %>
-          <a href="/admin/pending-books" class="block text-blue-600 hover:text-blue-800 font-semibold">🛠️ Admin Panel</a>
-          <a href="/admin/users" class="block text-blue-600 hover:text-blue-800 font-semibold">👥 Kelola Pengguna</a>
-          <a href="/admin/book-edits" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Permintaan Edit</a>
-        <% } else if (session.user.role === 'member') { %>
-          <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
-          <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>
-        <% } %>
-        
-        <a href="/logout" class="block text-red-600 hover:text-red-800 font-semibold">🚪 Logout</a>
+<body>
+  <h2>Edit Buku Menunggu Persetujuan</h2>
+
+  <% if (success_msg) { %>
+    <div class="flash-message success"><%= success_msg %></div>
+  <% } %>
+  <% if (error_msg) { %>
+    <div class="flash-message error"><%= error_msg %></div>
+  <% } %>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Judul Buku</th>
+        <th>Perubahan</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (edits && edits.length > 0) { %>
+        <% edits.forEach(edit => { %>
+          <tr>
+            <td><%= edit.id %></td>
+            <td><%= edit.judul %></td>
+            <td>
+              <ul>
+                <% if (edit.edit_judul) { %><li>Judul: <%= edit.edit_judul %></li><% } %>
+                <% if (edit.edit_penulis) { %><li>Penulis: <%= edit.edit_penulis %></li><% } %>
+                <% if (edit.genre) { %><li>Genre: <%= edit.genre %></li><% } %>
+                <% if (edit.tahun_terbit) { %><li>Tahun Terbit: <%= edit.tahun_terbit %></li><% } %>
+                <% if (edit.sampul_url) { %><li>Sampul: <img src="<%= edit.sampul_url %>" width="100"></li><% } %>
+              </ul>
+            </td>
+            <td>
+              <form action="/admin/approve-edit/<%= edit.id %>" method="POST">
+                <button type="submit">Setujui</button>
+              </form>
+              <form action="/admin/reject-edit/<%= edit.id %>" method="POST">
+                <button type="submit">Tolak</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
       <% } else { %>
-        <a href="/login" class="block text-blue-600 hover:text-blue-800 font-semibold">🔑 Login</a>
-        <a href="/register" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Daftar</a>
+        <tr><td colspan="4">Tidak ada edit buku yang menunggu.</td></tr>
       <% } %>
-    </div>
-    
-    <!-- Tombol Toggle -->
-    <button id="toggle-sidebar" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-blue-600 hover:text-blue-800 p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-all">
-      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" id="toggle-path" d="M15 19l-7-7 7-7" />
-      </svg>
-    </button>
-  </div>
-
-  <!-- Sidebar Mobile -->
-  <div id="mobile-sidebar" class="md:hidden fixed inset-0 z-50 bg-white w-64 shadow-lg transform -translate-x-full hidden transition-transform duration-300">
-    <div class="flex justify-between items-center p-4 border-b border-blue-200">
-      <h3 class="text-blue-800 font-bold text-lg">Navigasi</h3>
-      <button id="close-mobile-sidebar" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-    </div>
-    <div class="p-4 space-y-4">
-      <a href="/" class="block text-blue-600 hover:text-blue-800 font-semibold">🏠 Beranda</a>
-      
-      <% if (session && session.user) { %>
-        <a href="/profile" class="block text-blue-600 hover:text-blue-800 font-semibold">👤 Profil</a>
-        
-        <% if (session.user.role === 'admin') { %>
-          <a href="/admin/pending-books" class="block text-blue-600 hover:text-blue-800 font-semibold">🛠️ Admin Panel</a>
-          <a href="/admin/users" class="block text-blue-600 hover:text-blue-800 font-semibold">👥 Kelola Pengguna</a>
-          <a href="/admin/book-edits" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Permintaan Edit</a>
-        <% } else if (session.user.role === 'member') { %>
-          <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
-          <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>
-        <% } %>
-        
-        <a href="/logout" class="block text-red-600 hover:text-red-800 font-semibold">🚪 Logout</a>
-      <% } else { %>
-        <a href="/login" class="block text-blue-600 hover:text-blue-800 font-semibold">🔑 Login</a>
-        <a href="/register" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Daftar</a>
-      <% } %>
-    </div>
-  </div>
-  
-  <!-- Tombol Hamburger untuk Mobile -->
-  <button id="mobile-menu-toggle" class="md:hidden fixed bottom-4 right-4 z-40 bg-blue-500 text-white p-3 rounded-full shadow-md hover:shadow-lg">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
-  </button>
-
-  <!-- Konten Utama -->
-  <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
-    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
-      <h1 class="text-2xl font-bold text-blue-800 mb-6">Admin Panel - Permintaan Edit Buku</h1>
-
-      <!-- Flash Messages -->
-      <% if (success_msg) { %>
-        <div class="bg-green-100 text-green-700 p-3 rounded mb-6 text-center">
-          <%= success_msg %>
-        </div>
-      <% } %>
-      <% if (error_msg) { %>
-        <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
-          <%= error_msg %>
-        </div>
-      <% } %>
-
-      <!-- Daftar Permintaan Edit -->
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded-lg shadow text-sm">
-          <thead class="bg-blue-100">
-            <tr>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">ID</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Buku Asli</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Perubahan</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Penghargaan</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Diajukan Oleh</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-800">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (edits && edits.length > 0) { %>
-              <% edits.forEach(edit => { %>
-                <tr class="border-b last:border-b-0 hover:bg-blue-50">
-                  <td class="py-2 px-4"><%= edit.id %></td>
-                  <td class="py-2 px-4">
-                    <div><strong>Judul:</strong> <%= edit.judul %></div>
-                    <div><strong>Penulis:</strong> <%= edit.penulis %></div>
-                  </td>
-                  <td class="py-2 px-4">
-                    <% if (edit.edit_judul) { %><div><strong>Judul Baru:</strong> <%= edit.edit_judul %></div><% } %>
-                    <% if (edit.edit_penulis) { %><div><strong>Penulis Baru:</strong> <%= edit.edit_penulis %></div><% } %>
-                    <% if (edit.sampul_url) { %><div><strong>Sampul:</strong> Ada</div><% } %>
-                  </td>
-                  <td class="py-2 px-4">
-                    <% if (edit.awards) { %>
-                      <div class="bg-yellow-50 p-2 rounded border border-yellow-200 whitespace-pre-wrap">
-                        <%= edit.awards %>
-                      </div>
-                    <% } else { %>
-                      <div class="text-gray-500 italic">Tidak ada penghargaan</div>
-                    <% } %>
-                  </td>
-                  <td class="py-2 px-4"><%= edit.submitter_name %></td>
-                  <td class="py-2 px-4 space-y-2">
-                    <form action="/admin/book-edits/<%= edit.id %>/approve" method="POST">
-                      <button 
-                        type="submit" 
-                        class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-                      >
-                        Setujui
-                      </button>
-                    </form>
-                    <form action="/admin/book-edits/<%= edit.id %>/reject" method="POST">
-                      <button 
-                        type="submit" 
-                        class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-                      >
-                        Tolak
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              <% }) %>
-            <% } else { %>
-              <tr>
-                <td colspan="6" class="py-4 text-center text-gray-500">Tidak ada permintaan edit yang menunggu.</td>
-              </tr>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Kembali ke Admin Panel -->
-      <div class="mt-8 text-center">
-        <a href="/admin" class="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2">
-          &larr; Kembali ke Admin Panel
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Script Toggle Sidebar -->
-  <script>
-    // Mobile Sidebar Toggle
-    const menuToggle = document.getElementById('mobile-menu-toggle');
-    const mobileSidebar = document.getElementById('mobile-sidebar');
-    const closeBtn = document.getElementById('close-mobile-sidebar');
-    
-    if (menuToggle && mobileSidebar && closeBtn) {
-      menuToggle.addEventListener('click', () => {
-        mobileSidebar.classList.remove('-translate-x-full', 'hidden');
-        mobileSidebar.classList.add('translate-x-0');
-      });
-      
-      closeBtn.addEventListener('click', () => {
-        mobileSidebar.classList.add('-translate-x-full');
-        mobileSidebar.classList.remove('translate-x-0');
-        setTimeout(() => {
-          mobileSidebar.classList.add('hidden');
-        }, 300);
-      });
-      
-      // Tutup sidebar saat klik di luar
-      document.addEventListener('click', (e) => {
-        if (!mobileSidebar.contains(e.target) && !e.target.closest('#mobile-menu-toggle')) {
-          mobileSidebar.classList.add('-translate-x-full');
-          mobileSidebar.classList.remove('translate-x-0');
-          setTimeout(() => {
-            mobileSidebar.classList.add('hidden');
-          }, 300);
-        }
-      });
-    }
-    
-    // Desktop Sidebar Toggle
-    document.addEventListener('DOMContentLoaded', function () {
-      const toggleBtn = document.getElementById('toggle-sidebar');
-      const sidebar = document.getElementById('desktop-sidebar');
-      const mainContent = document.getElementById('main-content');
-      
-      if (toggleBtn && sidebar && mainContent) {
-        let isCollapsed = false;
-        toggleBtn.addEventListener('click', () => {
-          isCollapsed = !isCollapsed;
-          
-          // Toggle sidebar width
-          if (isCollapsed) {
-            sidebar.classList.remove('w-64');
-            sidebar.classList.add('w-16');
-            mainContent.classList.remove('md:ml-64');
-            mainContent.classList.add('md:ml-16');
-            
-            // Ubah ikon toggle
-            document.getElementById('toggle-path').setAttribute('d', 'M9 5l7 7-7 7');
-          } else {
-            sidebar.classList.remove('w-16');
-            sidebar.classList.add('w-64');
-            mainContent.classList.remove('md:ml-16');
-            mainContent.classList.add('md:ml-64');
-            
-            // Ubah ikon toggle
-            document.getElementById('toggle-path').setAttribute('d', 'M15 19l-7-7 7-7');
-          }
-        });
-      } else {
-        console.warn('Elemen sidebar tidak ditemukan. Pastikan ID sesuai.');
-      }
-    });
-  </script>
+    </tbody>
+  </table>
 </body>
 </html>
