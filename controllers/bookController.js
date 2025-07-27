@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const { upload,uploadToCloudinary,uploadErrorHandler } = require('../middleware/upload');
+const { uploadToCloudinary } = require('../middleware/upload');
 
 exports.getBooks = async (req, res) => {
     const { search, sort } = req.query;
@@ -109,38 +109,26 @@ exports.getSubmitBook = (req, res) => {
     res.render('submitBook', {});
 };
 
-exports.postSubmitBook = [
-    upload.single('sampul'),
-    async (req, res) => {
-        try {
-            const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards } = req.body;
-            const userId = req.session.user.id;
+exports.postSubmitBook = async (req, res) => {
+    const { judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli } = req.body; // ✅ Pastikan ada
+    const sampul_url = req.file ? `/uploads/${req.file.filename}` : null;
 
-            // Validasi input
-            if (!judul || !penulis) {
-                req.flash('error_msg', 'Judul dan penulis harus diisi');
-                return res.redirect('/books/submit-book');
-            }
+    try {
+        uploadToCloudinary,
+        await db.query(
+            `INSERT INTO book_submissions 
+      (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, awards, submitter_id) -- ✅ Pastikan kolom ada
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, req.session.user.id] // ✅ Pastikan nilai ada
+        );
+        req.flash('success_msg', 'Buku berhasil dikirim.');
+    } catch (err) {
+        req.flash('error_msg', 'Gagal mengirim buku.');
+        console.error(err);
+    }
 
-            uploadToCloudinary,
-            // Simpan ke database (termasuk awards)
-            await db.query(
-                `INSERT INTO book_submissions 
-         (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, awards, submitter_id) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-                [judul, penulis, deskripsi, genre, tahun_terbit, req.file ? req.file.path : null, link_baca_beli, awards, userId]
-            );
-
-            req.flash('success_msg', 'Buku berhasil diajukan. Menunggu persetujuan admin.');
-            res.redirect('/books/my-books');
-        } catch (err) {
-            console.error(err);
-            req.flash('error_msg', 'Gagal mengirim buku');
-            res.redirect('/books/submit-book');
-        }
-    },
-    uploadErrorHandler
-];
+    res.redirect('/books/submit-book');
+};
 
 // Tampilkan form edit buku
 exports.getEditBookForm = async (req, res) => {
@@ -218,7 +206,7 @@ exports.postEditBook = async (req, res) => {
         // Simpan edit
         await db.query(
             `INSERT INTO book_edits 
-      (book_id, submitter_id, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, sampul_url, status)
+      (book_id, submitter_id, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards, sampul_url, status)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
             [bookId, submitterId, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, sampulUrl, 'pending']
         );
