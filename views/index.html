@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AKSARARIA - Rekomendasi Buku</title>
+  <link rel="icon" type="image/x-icon" href="/images/aksararia.png" />
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -20,17 +21,16 @@
       <a href="/" class="block text-blue-600 hover:text-blue-800 font-semibold">🏠 Beranda</a>
       <% if (session && session.user) { %>
         <a href="/profile" class="block text-blue-600 hover:text-blue-800 font-semibold">👤 Profil</a>
-        <a href="/logout" class="block text-blue-600 hover:text-blue-800 font-semibold">🚪 Logout</a>
         <% if (session.user.role === 'admin') { %>
           <a href="/admin/pending-books" class="block text-blue-600 hover:text-blue-800 font-semibold">🛠️ Admin Panel</a>
-          <a href="/admin/users" class="block text-blue-600 hover:text-blue-800 font-semibold">👥 Kelola Pengguna</a>
-        <% } else if (session.user.role === 'member') { %>
-          <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
-          <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>
-        <% } %>
-      <% } else { %>
-        <a href="/login" class="block text-blue-600 hover:text-blue-800 font-semibold">🔑 Login</a>
-        <a href="/register" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Daftar</a>
+          <% } else if (session.user.role === 'member') { %>
+            <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
+            <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>
+            <% } %>
+            <a href="/logout" class="block text-red-600 hover:text-red-800 font-semibold">🚪 Logout</a>
+            <% } else { %>
+              <a href="/login" class="block text-blue-600 hover:text-blue-800 font-semibold">🔑 Login</a>
+              <a href="/register" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Daftar</a>
       <% } %>
     </div>
 
