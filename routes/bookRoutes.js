@@ -1,22 +1,37 @@
-module.exports = function (upload) {
-  const express = require('express');
-  const router = express.Router();
-  const bookController = require('../controllers/bookController');
-  const { ensureAuthenticated, ensureRole, ensureDailyBookLimit, ensureBookOwnership, ensureDailyEditLimit } = require('../middleware/authMiddleware');
-  const uploadMiddleware = require('../middleware/uploadMiddleware');
+// routes/bookRoutes.js
+const express = require('express');
+const router = express.Router();
+const bookController = require('../controllers/bookController');
+const { ensureAuthenticated, ensureRole, ensureDailyBookLimit, ensureBookOwnership } = require('../middleware/authMiddleware');
+const { upload, uploadErrorHandler } = require('../middleware/upload');
 
-  router.get('/submit-book', ensureAuthenticated, ensureRole('member'), bookController.getSubmitBook);
-  router.post('/submit-book', ensureAuthenticated, ensureRole('member'), ensureDailyBookLimit, upload.single('sampul'), bookController.postSubmitBook);
+// Tampilkan form submit buku
+router.get('/submit-book', ensureAuthenticated, ensureRole('member'), bookController.getSubmitBook);
 
-  // Tampilkan buku yang disetujui oleh member
-  router.get('/my-books', ensureAuthenticated, ensureRole('member'), bookController.getMyApprovedBooks);
+// Proses submit buku dengan batas harian
+router.post('/submit-book',
+  ensureAuthenticated,
+  ensureRole('member'),
+  ensureDailyBookLimit,
+  upload.single('sampul'),
+  bookController.postSubmitBook,
+  uploadErrorHandler
+);
 
-  // Detail buku
-  router.get('/:id', bookController.getBookDetail);
+// Tampilkan buku yang disetujui milik member
+router.get('/my-books', ensureAuthenticated, ensureRole('member'), bookController.getMyApprovedBooks);
 
-  // Gunakan middleware di route edit
-  router.get('/edit/:id', ensureAuthenticated, ensureBookOwnership, bookController.getEditBookForm);
-  router.post('/edit/:id', ensureAuthenticated, ensureBookOwnership, ensureDailyEditLimit, upload.single('sampul'), bookController.postEditBook);
-  
-  return router;
-};
+// Detail buku
+router.get('/:id', bookController.getBookDetail);
+
+// Gunakan middleware di route edit
+router.get('/edit/:id', ensureAuthenticated, ensureBookOwnership, bookController.getEditBookForm);
+router.post('/edit/:id',
+  ensureAuthenticated,
+  ensureBookOwnership,
+  upload.single('sampul'),
+  bookController.postEditBook,
+  uploadErrorHandler
+);
+
+module.exports = router;

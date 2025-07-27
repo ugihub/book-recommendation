@@ -1,120 +1,129 @@
+// index.js
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const db = require('./config/db');
-const reviewRoutes = require('./routes/reviewRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-const authMiddleware = require('./middleware/authMiddleware');
-const indexRoute = require('./routes/indexRoute');
-const ejs = require('ejs');
 const flash = require('connect-flash');
-const authRoutes = require('./routes/authRoutes');
-const multer = require('multer');
+const path = require('path');
 
 const app = express();
 
+// 1. Konfigurasi view engine
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// 2. Middleware dasar
 app.use(express.static('public'));
-app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false }));
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(flash());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
-// 2. Konfigurasi penyimpanan gambar
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/uploads/'); // Folder tujuan upload
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = file.originalname.split('.').pop();
-        cb(null, 'sampul-' + uniqueSuffix + '.' + ext);
-    }
-});
-
-// 3. Middleware upload
-const upload = multer({
-    storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png/;
-        const extname = filetypes.test(file.originalname.toLowerCase());
-        const mimetype = filetypes.test(file.mimetype);
-        if (mimetype && extname) return cb(null, true);
-        cb(new Error('Hanya file gambar yang diperbolehkan!'));
-    }
-});
-
-// Session
+// 3. Konfigurasi session
 app.use(session({
-    secret: 'your_secret_key',
+    secret: process.env.SESSION_SECRET || 'rahasia123456789',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000, // 24 jam
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production'
+    }
 }));
 
-// Middleware untuk melempar session ke view
-app.use((req, res, next) => {
-    res.locals.session = req.session; // Sekarang bisa akses `session.user` di EJS
-    next();
-});
+// 4. Middleware passport
+app.use(passport.initialize());
+app.use(passport.session());
 
-// Flash Message
+// 5. Middleware flash messages
+app.use(flash());
+
+// 6. Middleware untuk melempar session dan flash ke view
 app.use((req, res, next) => {
+    res.locals.session = req.session;
     res.locals.success_msg = req.flash('success_msg');
     res.locals.error_msg = req.flash('error_msg');
     next();
 });
 
-// Passport Config
-passport.use(new LocalStrategy(async (username, password, done) => {
-    const result = await db.query('SELECT * FROM users WHERE email = $1', [username]);
-    const user = result.rows[0];
-    if (!user) return done(null, false, { message: 'Incorrect email.' });
-    const isValid = await bcrypt.compare(password, user.password_hash);
-    if (!isValid) return done(null, false, { message: 'Incorrect password.' });
-    return done(null, user);
-}));
+// 7. Passport Config
+passport.use(new LocalStrategy(
+    { usernameField: 'email' },
+    async (email, password, done) => {
+        try {
+            const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+            const user = result.rows[0];
 
-passport.serializeUser((user, done) => done(null, user.id));
+            if (!user) {
+                return done(null, false, { message: 'Email tidak ditemukan.' });
+            }
+
+            const isValid = await bcrypt.compare(password, user.password_hash);
+            if (!isValid) {
+                return done(null, false, { message: 'Password salah.' });
+            }
+
+            return done(null, user);
+        } catch (err) {
+            return done(err);
+        }
+    }
+));
+
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
 passport.deserializeUser(async (id, done) => {
-    const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
-    done(null, result.rows[0]);
+    try {
+        const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+        const user = result.rows[0];
+        done(null, user);
+    } catch (err) {
+        done(err);
+    }
 });
 
-// Gunakan EJS sebagai engine untuk file .html
-app.engine('html', (filePath, options, callback) => {
-    ejs.renderFile(filePath, options, { async: false }, callback);
-});
-app.set('view engine', 'html');
-app.set('views', __dirname + '/views'); // Pastikan path benar
-
-// Middleware lainnya (urlencoded, session, dll)
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static('public'));
-
-// Routes
-app.use('/', adminRoutes); // ✅ Pastikan route ini ada
-app.use('/', indexRoute);
-app.use('/', authRoutes);
-app.use('/', reviewRoutes);
-app.use('/reviews', authMiddleware.ensureAuthenticated, reviewRoutes);
-app.use('/admin', authMiddleware.ensureRole('admin'), adminRoutes);
-
-const bookRoutes = require('./routes/bookRoutes')(upload); // Kirim upload ke route
-app.use('/books', bookRoutes);
-
+// 8. Import routes
+const authRoutes = require('./routes/authRoutes');
+const bookRoutes = require('./routes/bookRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 const profileRoutes = require('./routes/profileRoutes');
-app.use('/', profileRoutes);
+const { ensureAuthenticated, ensureRole } = require('./middleware/authMiddleware');
 
-try {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-} catch (err) {
-  console.error("Error starting server:", err);
-  process.exit(1);
-}
+// 9. Routes dengan handler yang benar
+app.get('/', (req, res) => {
+    res.render('index', { title: 'Beranda - AKSARARIA' });
+});
+
+app.use('/', authRoutes);
+app.use('/books', bookRoutes);
+app.use('/admin', ensureRole(['admin']), adminRoutes);
+app.use('/reviews', ensureAuthenticated, reviewRoutes);
+app.use('/profile', ensureAuthenticated, profileRoutes);
+
+// 10. Error handling 404
+app.use((req, res) => {
+    res.status(404).render('404', {
+        title: 'Halaman Tidak Ditemukan - AKSARARIA',
+        session: req.session
+    });
+});
+
+// 11. Error handling 500
+app.use((err, req, res, next) => {
+    console.error('Server Error:', err.stack);
+    req.flash('error_msg', 'Terjadi kesalahan pada server.');
+    res.status(500).render('500', {
+        title: 'Kesalahan Server - AKSARARIA',
+        session: req.session
+    });
+});
+
+// 12. Jalankan server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🟢 Server AKSARARIA berjalan di http://localhost:${PORT}`);
+    console.log(`🔧 Lingkungan: ${process.env.NODE_ENV || 'development'}`);
+});
