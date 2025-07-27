@@ -117,7 +117,7 @@ exports.postSubmitBook = async (req, res) => {
         uploadToCloudinary,
         await db.query(
             `INSERT INTO book_submissions 
-      (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, awards, submitter_id) -- ✅ Pastikan kolom ada
+      (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, submitter_id) -- ✅ Pastikan kolom ada
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
             [judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, req.session.user.id] // ✅ Pastikan nilai ada
         );
@@ -206,7 +206,7 @@ exports.postEditBook = async (req, res) => {
         // Simpan edit
         await db.query(
             `INSERT INTO book_edits 
-      (book_id, submitter_id, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, awards, sampul_url, status)
+      (book_id, submitter_id, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, sampul_url, status)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
             [bookId, submitterId, judul, penulis, genre, tahun_terbit, deskripsi, link_baca_beli, sampulUrl, 'pending']
         );
