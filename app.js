@@ -9,8 +9,9 @@ const path = require('path');
 const fs = require('fs');
 const ejs = require('ejs');
 const flash = require('connect-flash');
-const upload = require('./middleware/uploadMiddleware');
+const pgSession = require('connect-pg-simple')(session);
 
+const upload = require('./middleware/uploadMiddleware');
 const indexRoute = require('./routes/indexRoute');
 const authRoutes = require('./routes/authRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
@@ -33,7 +34,12 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Ganti konfigurasi session
 app.use(session({
+    store: new pgSession({
+        pool: db.pool,
+        tableName: 'session'
+    }),
     secret: process.env.SESSION_SECRET || 'fallback_secret_for_development_only_change_this_in_production',
     resave: false,
     saveUninitialized: false,
