@@ -6,14 +6,47 @@
     <title>Admin Panel - Kelola Pengguna | AKSARARIA</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom styling untuk meningkatkan tampilan */
+      .sidebar-collapsed {
+        width: 4rem !important;
+      }
+      .sidebar-expanded {
+        width: 16rem !important;
+      }
+      .user-table th {
+        font-weight: 600;
+        color: #1e40af;
+      }
+      .user-table tr:hover {
+        background-color: #dbeafe;
+      }
+      .suspension-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      @media (max-width: 768px) {
+        .suspension-form {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .suspension-form input {
+          width: 100% !important;
+        }
+      }
+    </style>
   </head>
   <body class="bg-blue-50 text-gray-800 font-sans">
     <!-- Sidebar Desktop -->
     <div
       id="desktop-sidebar"
-      class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg hidden md:block z-10 transition-all duration-300"
+      class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg hidden md:block z-10 transition-all duration-300 sidebar-expanded"
     >
+      <!-- Logo -->
       <div
+        id="sidebar-logo"
         class="flex items-center justify-center h-16 border-b border-blue-200"
       >
         <img
@@ -22,29 +55,28 @@
           class="h-10 object-contain"
         />
       </div>
+      <!-- Navigasi -->
       <div id="sidebar-nav" class="p-4 space-y-4">
-        <a
-          href="/"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">🏠</span>
-          <span class="sidebar-text">Beranda</span>
-        </a>
-        <% if (session && session.user) { %>
-        <a
-          href="/profile"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">👤</span>
-          <span class="sidebar-text">Profil</span>
-        </a>
-        <% if (session.user.role === 'admin') { %>
         <a
           href="/admin/pending-books"
           class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
         >
-          <span class="mr-3 text-lg">🛠️</span>
-          <span class="sidebar-text">Admin Panel</span>
+          <span class="mr-3 text-lg">📥</span>
+          <span class="sidebar-text">Buku Menunggu</span>
+        </a>
+        <a
+          href="/admin/book-edits"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">✏️</span>
+          <span class="sidebar-text">Edit Buku Menunggu</span>
+        </a>
+        <a
+          href="/admin/approved-books"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">✅</span>
+          <span class="sidebar-text">Buku Disetujui</span>
         </a>
         <a
           href="/admin/users"
@@ -53,22 +85,13 @@
           <span class="mr-3 text-lg">👥</span>
           <span class="sidebar-text">Kelola Pengguna</span>
         </a>
-        <% } else if (session.user.role === 'member') { %>
         <a
-          href="/books/submit-book"
+          href="/"
           class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
         >
-          <span class="mr-3 text-lg">📚</span>
-          <span class="sidebar-text">Submit Buku</span>
+          <span class="mr-3 text-lg">🏠</span>
+          <span class="sidebar-text">Beranda</span>
         </a>
-        <a
-          href="/books/my-books"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">📖</span>
-          <span class="sidebar-text">Buku Saya</span>
-        </a>
-        <% } %>
         <a
           href="/logout"
           class="flex items-center text-red-600 hover:text-red-800 font-semibold p-2 rounded hover:bg-red-50 group"
@@ -76,22 +99,6 @@
           <span class="mr-3 text-lg">🚪</span>
           <span class="sidebar-text">Logout</span>
         </a>
-        <% } else { %>
-        <a
-          href="/login"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">🔑</span>
-          <span class="sidebar-text">Login</span>
-        </a>
-        <a
-          href="/register"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">📝</span>
-          <span class="sidebar-text">Daftar</span>
-        </a>
-        <% } %>
       </div>
       <!-- Tombol Toggle Sidebar -->
       <button
@@ -116,7 +123,7 @@
         </svg>
       </button>
     </div>
-
+    
     <!-- Sidebar Mobile -->
     <div
       id="mobile-sidebar"
@@ -131,7 +138,7 @@
           class="h-8 object-contain"
         />
         <button
-          id="close-sidebar"
+          id="close-mobile-sidebar"
           class="text-gray-500 hover:text-gray-700 text-2xl"
         >
           &times;
@@ -153,7 +160,17 @@
         <a
           href="/admin/pending-books"
           class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🛠️ Admin Panel</a
+          >📥 Buku Menunggu</a
+        >
+        <a
+          href="/admin/book-edits"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >✏️ Edit Buku Menunggu</a
+        >
+        <a
+          href="/admin/approved-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >✅ Buku Disetujui</a
         >
         <a
           href="/admin/users"
@@ -191,7 +208,7 @@
         <% } %>
       </div>
     </div>
-
+    
     <!-- Tombol Hamburger untuk Mobile -->
     <button
       id="mobile-menu-toggle"
@@ -212,185 +229,206 @@
         />
       </svg>
     </button>
-
+    
     <!-- Konten Utama -->
     <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
       <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
-        <h1 class="text-2xl font-bold text-blue-800 mb-6">
-          Admin Panel - Kelola Pengguna
-        </h1>
-
+        <div class="flex items-center mb-6">
+          <h1 class="text-2xl font-bold text-blue-800 flex items-center">
+            <span class="mr-3">👥</span> Admin Panel - Kelola Pengguna
+          </h1>
+        </div>
+        
         <!-- Flash Messages -->
         <% if (success_msg) { %>
-        <div class="bg-green-100 text-green-700 p-3 rounded mb-6 text-center">
-          <%= success_msg %>
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded mb-6">
+          <p><%= success_msg %></p>
         </div>
-        <% } %> <% if (error_msg) { %>
-        <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
-          <%= error_msg %>
+        <% } %> 
+        <% if (error_msg) { %>
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
+          <p><%= error_msg %></p>
         </div>
         <% } %>
-
+        
         <!-- Daftar Pengguna -->
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white rounded-lg shadow text-sm">
-            <thead class="bg-blue-100">
-              <tr>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  ID
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Nama
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Email
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Role
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (users && users.length > 0) { %> <% users.forEach(user => {
-              %>
-              <tr class="border-b last:border-b-0 hover:bg-blue-50">
-                <td class="py-2 px-4"><%= user.id %></td>
-                <td class="py-2 px-4"><%= user.nama %></td>
-                <td class="py-2 px-4"><%= user.email %></td>
-                <td class="py-2 px-4 capitalize"><%= user.role %></td>
-                <td class="py-2 px-4">
-                  <% if (user.role === 'user') { %>
-                  <form
-                    action="/admin/users/promote/<%= user.id %>"
-                    method="POST"
-                  >
-                    <button
-                      type="submit"
-                      class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition duration-200 text-sm"
-                    >
-                      Jadikan Member
-                    </button>
-                  </form>
-                  <% } else { %>
-                  <em class="text-gray-500">Tidak bisa diubah</em>
-                  <% } %>
-                </td>
-              </tr>
-              <% }) %> <% } else { %>
-              <tr>
-                <td colspan="5" class="py-4 text-center text-gray-500">
-                  Tidak ada pengguna yang ditemukan.
-                </td>
-              </tr>
-              <% } %>
-            </tbody>
-          </table>
+        <div class="mb-10">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-blue-800 flex items-center">
+              <span class="mr-2">👤</span> Daftar Pengguna
+            </h2>
+            <span class="text-sm text-gray-600">
+              Total: <%= users ? users.length : 0 %> pengguna
+            </span>
+          </div>
+          
+          <div class="overflow-x-auto rounded-lg border border-blue-100">
+            <table class="min-w-full bg-white rounded-lg text-sm user-table">
+              <thead class="bg-blue-50">
+                <tr>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800 w-12">ID</th>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800">Nama</th>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800">Email</th>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800 w-24">Role</th>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800 w-32">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (users && users.filter(u => u.role === 'user').length > 0) { %>
+                  <% users.filter(u => u.role === 'user').forEach(user => { %>
+                  <tr class="border-t border-blue-50">
+                    <td class="py-3 px-4 text-blue-600 font-medium"><%= user.id %></td>
+                    <td class="py-3 px-4"><%= user.nama %></td>
+                    <td class="py-3 px-4"><%= user.email %></td>
+                    <td class="py-3 px-4 capitalize">
+                      <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                        <%= user.role %>
+                      </span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <form action="/admin/users/promote/<%= user.id %>" method="POST" class="inline">
+                        <button
+                          type="submit"
+                          class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-md transition duration-200 text-sm flex items-center"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.996a3 3 0 00-4.243 0l-6 6a3 3 0 00-4.243 4.243l-2 2a1 1 0 00-.293.707V19a2 2 0 002 2h12a2 2 0 002-2v-4.707a1 1 0 00-.293-.707l-2-2z" />
+                          </svg>
+                          Jadikan Member
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  <% }) %>
+                <% } else { %>
+                <tr>
+                  <td colspan="5" class="py-6 text-center text-gray-500 italic">
+                    Tidak ada pengguna yang ditemukan.
+                  </td>
+                </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
         </div>
-
+        
         <!-- Daftar Member -->
-        <h2 class="text-xl font-semibold text-blue-800 mt-10 mb-4">
-          Admin Panel - Kelola Member
-        </h2>
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white rounded-lg shadow text-sm">
-            <thead class="bg-blue-100">
-              <tr>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  ID
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Nama
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Email
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Role
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Suspended Until
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Reason
-                </th>
-                <th class="py-3 px-4 text-left font-semibold text-blue-800">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (users && users.length > 0) { %> <% users.forEach(user => {
-              %>
-              <tr class="border-b last:border-b-0 hover:bg-blue-50">
-                <td class="py-2 px-4"><%= user.id %></td>
-                <td class="py-2 px-4"><%= user.nama %></td>
-                <td class="py-2 px-4"><%= user.email %></td>
-                <td class="py-2 px-4 capitalize"><%= user.role %></td>
-                <td class="py-2 px-4">
-                  <%= user.suspended_until ? new
-                  Date(user.suspended_until).toLocaleString() : 'Tidak
-                  ditangguhkan' %>
-                </td>
-                <td class="py-2 px-4"><%= user.suspension_reason || '-' %></td>
-                <td class="py-2 px-4">
-                  <% if (user.role === 'member') { %>
-                  <div class="space-y-2">
-                    <!-- Form Suspend -->
-                    <form
-                      action="/admin/suspend-member/<%= user.id %>"
-                      method="POST"
-                      class="flex flex-wrap gap-2"
-                    >
-                      <input
-                        type="number"
-                        name="duration"
-                        placeholder="Durasi (jam)"
-                        required
-                        class="w-full sm:w-auto px-2 py-1 border border-blue-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      />
-                      <input
-                        type="text"
-                        name="reason"
-                        placeholder="Alasan sanksi"
-                        required
-                        class="w-full sm:w-auto px-2 py-1 border border-blue-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      />
-                      <button
-                        type="submit"
-                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded transition duration-200 text-sm"
-                      >
-                        Suspend
-                      </button>
-                    </form>
-
-                    <!-- Form Demote -->
-                    <form
-                      action="/admin/demote-member/<%= user.id %>"
-                      method="POST"
-                    >
-                      <button
-                        type="submit"
-                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition duration-200 text-sm"
-                      >
-                        Turunkan ke User
-                      </button>
-                    </form>
-                  </div>
-                  <% } %>
-                </td>
-              </tr>
-              <% }) %> <% } else { %>
-              <tr>
-                <td colspan="7" class="py-4 text-center text-gray-500">
-                  Tidak ada member yang ditemukan.
-                </td>
-              </tr>
-              <% } %>
-            </tbody>
-          </table>
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-blue-800 flex items-center">
+              <span class="mr-2">🌟</span> Daftar Member
+            </h2>
+            <span class="text-sm text-gray-600">
+              Total: <%= users ? users.filter(u => u.role === 'member').length : 0 %> member
+            </span>
+          </div>
+          
+          <div class="overflow-x-auto rounded-lg border border-blue-100">
+            <table class="min-w-full bg-white rounded-lg text-sm user-table">
+              <thead class="bg-blue-50">
+                <tr>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800 w-12">ID</th>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800">Nama</th>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800">Email</th>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800 w-24">Role</th>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800 w-40">Status</th>
+                  <th class="py-3 px-4 text-left font-semibold text-blue-800 w-48">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (users && users.filter(u => u.role === 'member').length > 0) { %>
+                  <% users.filter(u => u.role === 'member').forEach(user => { %>
+                  <tr class="border-t border-blue-50">
+                    <td class="py-3 px-4 text-blue-600 font-medium"><%= user.id %></td>
+                    <td class="py-3 px-4"><%= user.nama %></td>
+                    <td class="py-3 px-4"><%= user.email %></td>
+                    <td class="py-3 px-4">
+                      <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                        Member
+                      </span>
+                    </td>
+                    <td class="py-3 px-4">
+                      <% if (user.suspended_until) { %>
+                        <div class="bg-red-100 text-red-800 px-2 py-1.5 rounded-md text-xs">
+                          <div class="font-medium">Suspended</div>
+                          <div class="text-[10px] mt-1">
+                            Sampai: <%= new Date(user.suspended_until).toLocaleString() %>
+                          </div>
+                          <div class="text-[10px] mt-1 truncate" title="<%= user.suspension_reason %>">
+                            Alasan: <%= user.suspension_reason %>
+                          </div>
+                        </div>
+                      <% } else { %>
+                        <div class="bg-green-100 text-green-800 px-2 py-1.5 rounded-md text-xs">
+                          <div class="font-medium">Aktif</div>
+                          <div class="text-[10px] mt-1">Tidak ada sanksi</div>
+                        </div>
+                      <% } %>
+                    </td>
+                    <td class="py-3 px-4">
+                      <div class="space-y-2">
+                        <!-- Form Suspend -->
+                        <form
+                          action="/admin/suspend-member/<%= user.id %>"
+                          method="POST"
+                          class="suspension-form"
+                        >
+                          <input
+                            type="number"
+                            name="duration"
+                            placeholder="Durasi (jam)"
+                            required
+                            min="1"
+                            class="px-3 py-2 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 w-24"
+                          />
+                          <input
+                            type="text"
+                            name="reason"
+                            placeholder="Alasan sanksi"
+                            required
+                            class="px-3 py-2 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 flex-1 min-w-[150px]"
+                          />
+                          <button
+                            type="submit"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-md transition duration-200 text-sm flex items-center"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            Suspend
+                          </button>
+                        </form>
+                        
+                        <!-- Form Demote -->
+                        <form
+                          action="/admin/demote-member/<%= user.id %>"
+                          method="POST"
+                          class="inline"
+                        >
+                          <button
+                            type="submit"
+                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md transition duration-200 text-sm flex items-center"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Turunkan ke User
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                  <% }) %>
+                <% } else { %>
+                <tr>
+                  <td colspan="6" class="py-6 text-center text-gray-500 italic">
+                    Tidak ada member yang ditemukan.
+                  </td>
+                </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -400,20 +438,20 @@
       document.addEventListener("DOMContentLoaded", function () {
         // --- Script untuk Sidebar Mobile ---
         const menuToggle = document.getElementById("mobile-menu-toggle");
-        const closeSidebar = document.getElementById("close-sidebar");
+        const closeSidebar = document.getElementById("close-mobile-sidebar");
         const mobileSidebar = document.getElementById("mobile-sidebar");
+        
         if (menuToggle && closeSidebar && mobileSidebar) {
           menuToggle.addEventListener("click", () => {
-            mobileSidebar.classList.remove("-translate-x-full", "hidden");
+            mobileSidebar.classList.remove("-translate-x-full");
             mobileSidebar.classList.add("translate-x-0");
           });
+          
           closeSidebar.addEventListener("click", () => {
             mobileSidebar.classList.add("-translate-x-full");
             mobileSidebar.classList.remove("translate-x-0");
-            setTimeout(() => {
-              mobileSidebar.classList.add("hidden");
-            }, 300);
           });
+          
           // Tutup sidebar saat klik di luar
           document.addEventListener("click", (e) => {
             if (
@@ -422,20 +460,19 @@
             ) {
               mobileSidebar.classList.add("-translate-x-full");
               mobileSidebar.classList.remove("translate-x-0");
-              setTimeout(() => {
-                mobileSidebar.classList.add("hidden");
-              }, 300);
             }
           });
         } else {
           console.warn("Elemen sidebar mobile tidak ditemukan.");
         }
+        
         // --- Script untuk Sidebar Desktop (Minimize/Expand) ---
         const toggleBtn = document.getElementById("toggle-sidebar");
         const sidebar = document.getElementById("desktop-sidebar");
         const mainContent = document.getElementById("main-content");
         const sidebarTexts = document.querySelectorAll(".sidebar-text");
         const iconPath = document.getElementById("toggle-path");
+        
         if (
           toggleBtn &&
           sidebar &&
@@ -444,45 +481,52 @@
           iconPath
         ) {
           let isCollapsed = false; // Status sidebar saat ini
+          
           // Fungsi untuk toggle sidebar
           function toggleSidebar() {
             isCollapsed = !isCollapsed;
             if (isCollapsed) {
               // --- Collapse Sidebar ---
-              sidebar.classList.remove("w-64");
-              sidebar.classList.add("w-16"); // Lebar sekitar 4rem (64px)
+              sidebar.classList.remove("w-64", "sidebar-expanded");
+              sidebar.classList.add("w-16", "sidebar-collapsed");
+              
               // Sembunyikan teks navigasi
               sidebarTexts.forEach((text) => text.classList.add("hidden"));
+              
               // Geser konten utama
               mainContent.classList.remove("md:ml-64");
-              mainContent.classList.add("md:ml-16"); // Sesuaikan dengan lebar sidebar yang collapsed
+              mainContent.classList.add("md:ml-16");
+              
               // Ubah ikon toggle
-              iconPath.setAttribute("d", "M9 5l7 7-7 7"); // Panah kanan
+              iconPath.setAttribute("d", "M9 5l7 7-7 7");
             } else {
               // --- Expand Sidebar ---
-              sidebar.classList.remove("w-16");
-              sidebar.classList.add("w-64"); // Lebar penuh 16rem (256px)
+              sidebar.classList.remove("w-16", "sidebar-collapsed");
+              sidebar.classList.add("w-64", "sidebar-expanded");
+              
               // Tampilkan teks navigasi
               sidebarTexts.forEach((text) => text.classList.remove("hidden"));
+              
               // Geser konten utama kembali
               mainContent.classList.remove("md:ml-16");
-              mainContent.classList.add("md:ml-64"); // Sesuaikan dengan lebar sidebar yang expanded
+              mainContent.classList.add("md:ml-64");
+              
               // Ubah ikon toggle
-              iconPath.setAttribute("d", "M15 19l-7-7 7-7"); // Panah kiri
+              iconPath.setAttribute("d", "M15 19l-7-7 7-7");
             }
           }
+          
           // Tambahkan event listener ke tombol toggle
           toggleBtn.addEventListener("click", toggleSidebar);
-          // --- (Opsional) Simpan status toggle di localStorage ---
-          // Cek status dari localStorage saat halaman dimuat
-          const savedState = localStorage.getItem("bookDetailSidebarCollapsed");
+          
+          // Simpan status toggle di localStorage
+          const savedState = localStorage.getItem("adminSidebarCollapsed");
           if (savedState === "true") {
-            // Jika status tersimpan sebagai collapsed, toggle sekali
-            toggleSidebar(); // Ini akan mengubah isCollapsed ke true dan menerapkan gaya
+            toggleSidebar();
           }
-          // Simpan status baru saat tombol toggle diklik
+          
           toggleBtn.addEventListener("click", () => {
-            localStorage.setItem("bookDetailSidebarCollapsed", isCollapsed);
+            localStorage.setItem("adminSidebarCollapsed", isCollapsed);
           });
         } else {
           console.warn("Elemen sidebar desktop atau toggle tidak ditemukan.");

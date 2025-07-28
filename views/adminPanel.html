@@ -13,38 +13,40 @@
       id="desktop-sidebar"
       class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg hidden md:block z-10 transition-all duration-300"
     >
+      <!-- Logo -->
       <div
+        id="sidebar-logo"
         class="flex items-center justify-center h-16 border-b border-blue-200"
       >
         <img
           src="/images/aksararia.png"
           alt="AKSARARIA Logo"
-          class="h-10 object-contain"
+          class="h-12 object-contain"
         />
       </div>
+
+      <!-- Navigasi -->
       <div id="sidebar-nav" class="p-4 space-y-4">
-        <a
-          href="/"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">🏠</span>
-          <span class="sidebar-text">Beranda</span>
-        </a>
-        <% if (session && session.user) { %>
-        <a
-          href="/profile"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">👤</span>
-          <span class="sidebar-text">Profil</span>
-        </a>
-        <% if (session.user.role === 'admin') { %>
         <a
           href="/admin/pending-books"
           class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
         >
-          <span class="mr-3 text-lg">🛠️</span>
-          <span class="sidebar-text">Admin Panel</span>
+          <span class="mr-3 text-lg">📥</span>
+          <span class="sidebar-text">Buku Menunggu</span>
+        </a>
+        <a
+          href="/admin/book-edits"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">✏️</span>
+          <span class="sidebar-text">Edit Buku Menunggu</span>
+        </a>
+        <a
+          href="/admin/approved-books"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">✅</span>
+          <span class="sidebar-text">Buku Disetujui</span>
         </a>
         <a
           href="/admin/users"
@@ -53,22 +55,13 @@
           <span class="mr-3 text-lg">👥</span>
           <span class="sidebar-text">Kelola Pengguna</span>
         </a>
-        <% } else if (session.user.role === 'member') { %>
         <a
-          href="/books/submit-book"
+          href="/"
           class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
         >
-          <span class="mr-3 text-lg">📚</span>
-          <span class="sidebar-text">Submit Buku</span>
+          <span class="mr-3 text-lg">🏠</span>
+          <span class="sidebar-text">Beranda</span>
         </a>
-        <a
-          href="/books/my-books"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">📖</span>
-          <span class="sidebar-text">Buku Saya</span>
-        </a>
-        <% } %>
         <a
           href="/logout"
           class="flex items-center text-red-600 hover:text-red-800 font-semibold p-2 rounded hover:bg-red-50 group"
@@ -76,23 +69,8 @@
           <span class="mr-3 text-lg">🚪</span>
           <span class="sidebar-text">Logout</span>
         </a>
-        <% } else { %>
-        <a
-          href="/login"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">🔑</span>
-          <span class="sidebar-text">Login</span>
-        </a>
-        <a
-          href="/register"
-          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
-        >
-          <span class="mr-3 text-lg">📝</span>
-          <span class="sidebar-text">Daftar</span>
-        </a>
-        <% } %>
       </div>
+
       <!-- Tombol Toggle Sidebar -->
       <button
         id="toggle-sidebar"
@@ -131,7 +109,7 @@
           class="h-8 object-contain"
         />
         <button
-          id="close-sidebar"
+          id="close-mobile-sidebar"
           class="text-gray-500 hover:text-gray-700 text-2xl"
         >
           &times;
@@ -153,7 +131,17 @@
         <a
           href="/admin/pending-books"
           class="block text-blue-600 hover:text-blue-800 font-semibold"
-          >🛠️ Admin Panel</a
+          >📥 Buku Menunggu</a
+        >
+        <a
+          href="/admin/book-edits"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >✏️ Edit Buku Menunggu</a
+        >
+        <a
+          href="/admin/approved-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >✅ Buku Disetujui</a
         >
         <a
           href="/admin/users"
