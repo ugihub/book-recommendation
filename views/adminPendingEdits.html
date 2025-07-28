@@ -1,171 +1,425 @@
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Admin - Edit Buku Menunggu</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-blue-50 min-h-screen font-sans text-gray-800">
-  <div class="flex min-h-screen">
-    <!-- Sidebar -->
-    <aside class="hidden md:flex flex-col w-64 bg-white shadow-lg z-30">
-      <div class="flex items-center justify-center h-20 border-b border-blue-100">
-        <img src="/aksararia.png" alt="AKSARARIA Logo" class="h-10 object-contain">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Edit Buku Menunggu | AKSARARIA</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-blue-50 text-gray-800 font-sans">
+    <!-- Sidebar Desktop -->
+    <div
+      id="desktop-sidebar"
+      class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg hidden md:block z-10 transition-all duration-300"
+    >
+      <div
+        class="flex items-center justify-center h-16 border-b border-blue-200"
+      >
+        <img
+          src="/images/aksararia.png"
+          alt="AKSARARIA Logo"
+          class="h-10 object-contain"
+        />
       </div>
-      <nav class="flex-1 p-6 space-y-2">
-        <a href="/admin/book-edits" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-blue-100">
-          <span class="text-blue-600 text-xl">✏️</span>
-          <span class="font-semibold text-blue-700">Edit Buku</span>
+      <div id="sidebar-nav" class="p-4 space-y-4">
+        <a
+          href="/"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">🏠</span>
+          <span class="sidebar-text">Beranda</span>
         </a>
-        <a href="/admin/approved-books" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-          <span class="text-blue-600 text-xl">✅</span>
-          <span class="font-semibold text-blue-700">Buku Disetujui</span>
+        <% if (session && session.user) { %>
+        <a
+          href="/profile"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">👤</span>
+          <span class="sidebar-text">Profil</span>
         </a>
-        <a href="/admin/users" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-          <span class="text-blue-600 text-xl">👥</span>
-          <span class="font-semibold text-blue-700">Kelola Pengguna</span>
+        <% if (session.user.role === 'admin') { %>
+        <a
+          href="/admin/pending-books"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">🛠️</span>
+          <span class="sidebar-text">Admin Panel</span>
         </a>
-        <a href="/" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-          <span class="text-blue-600 text-xl">🏠</span>
-          <span class="font-semibold text-blue-700">Beranda</span>
+        <a
+          href="/admin/users"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">👥</span>
+          <span class="sidebar-text">Kelola Pengguna</span>
         </a>
-        <a href="/logout" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-          <span class="text-blue-600 text-xl">🚪</span>
-          <span class="font-semibold text-blue-700">Logout</span>
+        <% } else if (session.user.role === 'member') { %>
+        <a
+          href="/books/submit-book"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">📚</span>
+          <span class="sidebar-text">Submit Buku</span>
         </a>
-      </nav>
-    </aside>
+        <a
+          href="/books/my-books"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">📖</span>
+          <span class="sidebar-text">Buku Saya</span>
+        </a>
+        <% } %>
+        <a
+          href="/logout"
+          class="flex items-center text-red-600 hover:text-red-800 font-semibold p-2 rounded hover:bg-red-50 group"
+        >
+          <span class="mr-3 text-lg">🚪</span>
+          <span class="sidebar-text">Logout</span>
+        </a>
+        <% } else { %>
+        <a
+          href="/login"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">🔑</span>
+          <span class="sidebar-text">Login</span>
+        </a>
+        <a
+          href="/register"
+          class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group"
+        >
+          <span class="mr-3 text-lg">📝</span>
+          <span class="sidebar-text">Daftar</span>
+        </a>
+        <% } %>
+      </div>
+      <!-- Tombol Toggle Sidebar -->
+      <button
+        id="toggle-sidebar"
+        class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-blue-600 hover:text-blue-800 p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-all"
+      >
+        <svg
+          id="toggle-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            id="toggle-path"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+    </div>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-6 md:ml-64">
-    <div class="flex min-h-screen">
-      <!-- Sidebar -->
-      <aside id="sidebar" class="hidden md:flex flex-col bg-white shadow-lg z-30 transition-all duration-300 w-64 md:w-64 sidebar-open">
-        <div class="flex items-center justify-between h-20 border-b border-blue-100 px-4">
-          <img src="/aksararia.png" alt="AKSARARIA Logo" class="h-10 object-contain sidebar-logo transition-all duration-300">
-          <button id="sidebar-toggle" class="text-blue-600 text-2xl focus:outline-none ml-2">
-            <span id="sidebar-toggle-icon">«</span>
-          </button>
-        </div>
-        <nav class="flex-1 p-6 space-y-2">
-          <a href="/" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-            <span class="text-blue-600 text-xl">🏠</span>
-            <span class="sidebar-label font-semibold text-blue-700 ml-3">Beranda</span>
-          </a>
-          <a href="/admin/pending-books" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-            <span class="text-blue-600 text-xl">⏳</span>
-            <span class="sidebar-label font-semibold text-blue-700 ml-3">Buku Menunggu</span>
-          </a>
-          <a href="/admin/book-edits" class="flex items-center px-3 py-2 rounded-lg bg-blue-100">
-            <span class="text-blue-600 text-xl">✏️</span>
-            <span class="sidebar-label font-semibold text-blue-700 ml-3">Edit Buku</span>
-          </a>
-          <a href="/admin/approved-books" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-            <span class="text-blue-600 text-xl">✅</span>
-            <span class="sidebar-label font-semibold text-blue-700 ml-3">Buku Disetujui</span>
-          </a>
-          <a href="/admin/users" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-            <span class="text-blue-600 text-xl">👥</span>
-            <span class="sidebar-label font-semibold text-blue-700 ml-3">Kelola Pengguna</span>
-          </a>
-          <a href="/logout" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-            <span class="text-blue-600 text-xl">🚪</span>
-            <span class="sidebar-label font-semibold text-blue-700 ml-3">Logout</span>
-          </a>
-        </nav>
-      </aside>
+    <!-- Sidebar Mobile -->
+    <div
+      id="mobile-sidebar"
+      class="md:hidden fixed inset-0 z-50 bg-white w-64 shadow-lg transform -translate-x-full transition-transform duration-300"
+    >
+      <div
+        class="flex justify-between items-center p-4 border-b border-blue-200"
+      >
+        <img
+          src="/images/aksararia.png"
+          alt="AKSARARIA Logo"
+          class="h-8 object-contain"
+        />
+        <button
+          id="close-sidebar"
+          class="text-gray-500 hover:text-gray-700 text-2xl"
+        >
+          &times;
+        </button>
+      </div>
+      <div class="p-4 space-y-4">
+        <a
+          href="/"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🏠 Beranda</a
+        >
+        <% if (session && session.user) { %>
+        <a
+          href="/profile"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >👤 Profil</a
+        >
+        <% if (session.user.role === 'admin') { %>
+        <a
+          href="/admin/pending-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🛠️ Admin Panel</a
+        >
+        <a
+          href="/admin/users"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >👥 Kelola Pengguna</a
+        >
+        <% } else if (session.user.role === 'member') { %>
+        <a
+          href="/books/submit-book"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📚 Submit Buku</a
+        >
+        <a
+          href="/books/my-books"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📖 Buku Saya</a
+        >
+        <% } %>
+        <a
+          href="/logout"
+          class="block text-red-600 hover:text-red-800 font-semibold"
+          >🚪 Logout</a
+        >
+        <% } else { %>
+        <a
+          href="/login"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >🔑 Login</a
+        >
+        <a
+          href="/register"
+          class="block text-blue-600 hover:text-blue-800 font-semibold"
+          >📝 Daftar</a
+        >
+        <% } %>
+      </div>
+    </div>
 
-      <!-- Main Content -->
-      <main id="main-content" class="flex-1 p-6 transition-all duration-300 md:ml-64">
-    <!-- Sidebar Toggle Script -->
-    <script>
-      const sidebar = document.getElementById('sidebar');
-      const mainContent = document.getElementById('main-content');
-      const sidebarToggle = document.getElementById('sidebar-toggle');
-      const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
-      function setSidebar(open) {
-        if (open) {
-          sidebar.classList.remove('w-20', 'sidebar-closed');
-          sidebar.classList.add('w-64', 'sidebar-open');
-          mainContent.classList.remove('md:ml-20');
-          mainContent.classList.add('md:ml-64');
-          document.querySelectorAll('.sidebar-label').forEach(e => e.classList.remove('hidden'));
-          sidebarToggleIcon.textContent = '«';
-        } else {
-          sidebar.classList.remove('w-64', 'sidebar-open');
-          sidebar.classList.add('w-20', 'sidebar-closed');
-          mainContent.classList.remove('md:ml-64');
-          mainContent.classList.add('md:ml-20');
-          document.querySelectorAll('.sidebar-label').forEach(e => e.classList.add('hidden'));
-          sidebarToggleIcon.textContent = '»';
-        }
-      }
-      let sidebarOpen = true;
-      setSidebar(sidebarOpen);
-      sidebarToggle.addEventListener('click', () => {
-        sidebarOpen = !sidebarOpen;
-        setSidebar(sidebarOpen);
-      });
-    </script>
-      <h1 class="text-2xl font-bold text-blue-800 mb-6">✏️ Edit Buku Menunggu Persetujuan</h1>
+    <!-- Tombol Hamburger untuk Mobile -->
+    <button
+      id="mobile-menu-toggle"
+      class="md:hidden fixed bottom-4 right-4 z-40 bg-blue-500 text-white p-3 rounded-full shadow-md hover:shadow-lg"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 6h16M4 12h16M4 18h16"
+        />
+      </svg>
+    </button>
 
-      <% if (success_msg) { %>
+    <!-- Konten Utama -->
+    <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
+      <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
+        <h1 class="text-2xl font-bold text-blue-800 mb-6">
+          Admin Panel - Edit Buku Menunggu Persetujuan
+        </h1>
+
+        <!-- Flash Messages -->
+        <% if (success_msg) { %>
         <div class="bg-green-100 text-green-700 p-3 rounded mb-6 text-center">
           <%= success_msg %>
         </div>
-      <% } %>
-      <% if (error_msg) { %>
+        <% } %> <% if (error_msg) { %>
         <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
           <%= error_msg %>
         </div>
-      <% } %>
+        <% } %>
 
-      <div class="overflow-x-auto rounded-lg shadow">
-        <table class="min-w-full bg-white">
-          <thead class="bg-blue-100">
-            <tr>
-              <th class="py-3 px-4 text-left font-semibold text-blue-700">ID</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-700">Judul Buku</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-700">Perubahan</th>
-              <th class="py-3 px-4 text-left font-semibold text-blue-700">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (edits && edits.length > 0) { %>
-              <% edits.forEach(edit => { %>
-                <tr class="border-b hover:bg-blue-50">
-                  <td class="py-2 px-4"><%= edit.id %></td>
-                  <td class="py-2 px-4"><%= edit.judul %></td>
-                  <td class="py-2 px-4">
-                    <ul class="list-disc ml-4">
-                      <% if (edit.edit_judul) { %><li>Judul: <%= edit.edit_judul %></li><% } %>
-                      <% if (edit.edit_penulis) { %><li>Penulis: <%= edit.edit_penulis %></li><% } %>
-                      <% if (edit.genre) { %><li>Genre: <%= edit.genre %></li><% } %>
-                      <% if (edit.tahun_terbit) { %><li>Tahun Terbit: <%= edit.tahun_terbit %></li><% } %>
-                      <% if (edit.sampul_url) { %><li>Sampul: <img src="<%= edit.sampul_url %>" class="w-24 rounded mt-1"></li><% } %>
-                    </ul>
-                  </td>
-                  <td class="py-2 px-4">
-                    <form action="/admin/approve-edit/<%= edit.id %>" method="POST" class="inline">
-                      <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mb-1">Setujui</button>
-                    </form>
-                    <form action="/admin/reject-edit/<%= edit.id %>" method="POST" class="inline">
-                      <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Tolak</button>
-                    </form>
-                  </td>
-                </tr>
-              <% }) %>
-            <% } else { %>
+        <!-- Daftar Edit Buku Menunggu -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white rounded-lg shadow text-sm">
+            <thead class="bg-blue-100">
               <tr>
-                <td colspan="4" class="py-4 text-center text-gray-500">Tidak ada edit buku yang menunggu.</td>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  ID
+                </th>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  Judul Buku
+                </th>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  Perubahan
+                </th>
+                <th class="py-3 px-4 text-left font-semibold text-blue-800">
+                  Aksi
+                </th>
               </tr>
-            <% } %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% if (edits && edits.length > 0) { %> <% edits.forEach(edit => {
+              %>
+              <tr class="border-b last:border-b-0 hover:bg-blue-50">
+                <td class="py-2 px-4"><%= edit.id %></td>
+                <td class="py-2 px-4"><%= edit.judul %></td>
+                <td class="py-2 px-4">
+                  <ul class="space-y-1">
+                    <% if (edit.edit_judul) { %>
+                    <li><strong>Judul:</strong> <%= edit.edit_judul %></li>
+                    <% } %> <% if (edit.edit_penulis) { %>
+                    <li><strong>Penulis:</strong> <%= edit.edit_penulis %></li>
+                    <% } %> <% if (edit.genre) { %>
+                    <li><strong>Genre:</strong> <%= edit.genre %></li>
+                    <% } %> <% if (edit.tahun_terbit) { %>
+                    <li>
+                      <strong>Tahun Terbit:</strong> <%= edit.tahun_terbit %>
+                    </li>
+                    <% } %> <% if (edit.sampul_url) { %>
+                    <li>
+                      <strong>Sampul:</strong>
+                      <img
+                        src="<%= edit.sampul_url %>"
+                        alt="Sampul <%= edit.judul %>"
+                        class="w-24 h-32 object-cover rounded mt-1"
+                      />
+                    </li>
+                    <% } %>
+                  </ul>
+                </td>
+                <td class="py-2 px-4 space-y-2">
+                  <form
+                    action="/admin/approve-edit/<%= edit.id %>"
+                    method="POST"
+                  >
+                    <button
+                      type="submit"
+                      class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+                    >
+                      Setujui
+                    </button>
+                  </form>
+                  <form
+                    action="/admin/reject-edit/<%= edit.id %>"
+                    method="POST"
+                  >
+                    <button
+                      type="submit"
+                      class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+                    >
+                      Tolak
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              <% }) %> <% } else { %>
+              <tr>
+                <td colspan="4" class="py-4 text-center text-gray-500">
+                  Tidak ada edit buku yang menunggu.
+                </td>
+              </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Kembali ke Admin Panel -->
+        <div class="mt-8 text-center">
+          <a
+            href="/admin/pending-books"
+            class="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2"
+            >&larr; Kembali ke Admin Panel</a
+          >
+        </div>
       </div>
-    </main>
-  </div>
-</body>
+    </div>
+
+    <!-- Script Toggle Sidebar -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // --- Script untuk Sidebar Mobile ---
+        const menuToggle = document.getElementById("mobile-menu-toggle");
+        const closeSidebar = document.getElementById("close-sidebar");
+        const mobileSidebar = document.getElementById("mobile-sidebar");
+        if (menuToggle && closeSidebar && mobileSidebar) {
+          menuToggle.addEventListener("click", () => {
+            mobileSidebar.classList.remove("-translate-x-full", "hidden");
+            mobileSidebar.classList.add("translate-x-0");
+          });
+          closeSidebar.addEventListener("click", () => {
+            mobileSidebar.classList.add("-translate-x-full");
+            mobileSidebar.classList.remove("translate-x-0");
+            setTimeout(() => {
+              mobileSidebar.classList.add("hidden");
+            }, 300);
+          });
+          // Tutup sidebar saat klik di luar
+          document.addEventListener("click", (e) => {
+            if (
+              !mobileSidebar.contains(e.target) &&
+              !e.target.closest("#mobile-menu-toggle")
+            ) {
+              mobileSidebar.classList.add("-translate-x-full");
+              mobileSidebar.classList.remove("translate-x-0");
+              setTimeout(() => {
+                mobileSidebar.classList.add("hidden");
+              }, 300);
+            }
+          });
+        } else {
+          console.warn("Elemen sidebar mobile tidak ditemukan.");
+        }
+        // --- Script untuk Sidebar Desktop (Minimize/Expand) ---
+        const toggleBtn = document.getElementById("toggle-sidebar");
+        const sidebar = document.getElementById("desktop-sidebar");
+        const mainContent = document.getElementById("main-content");
+        const sidebarTexts = document.querySelectorAll(".sidebar-text");
+        const iconPath = document.getElementById("toggle-path");
+        if (
+          toggleBtn &&
+          sidebar &&
+          mainContent &&
+          sidebarTexts.length > 0 &&
+          iconPath
+        ) {
+          let isCollapsed = false; // Status sidebar saat ini
+          // Fungsi untuk toggle sidebar
+          function toggleSidebar() {
+            isCollapsed = !isCollapsed;
+            if (isCollapsed) {
+              // --- Collapse Sidebar ---
+              sidebar.classList.remove("w-64");
+              sidebar.classList.add("w-16"); // Lebar sekitar 4rem (64px)
+              // Sembunyikan teks navigasi
+              sidebarTexts.forEach((text) => text.classList.add("hidden"));
+              // Geser konten utama
+              mainContent.classList.remove("md:ml-64");
+              mainContent.classList.add("md:ml-16"); // Sesuaikan dengan lebar sidebar yang collapsed
+              // Ubah ikon toggle
+              iconPath.setAttribute("d", "M9 5l7 7-7 7"); // Panah kanan
+            } else {
+              // --- Expand Sidebar ---
+              sidebar.classList.remove("w-16");
+              sidebar.classList.add("w-64"); // Lebar penuh 16rem (256px)
+              // Tampilkan teks navigasi
+              sidebarTexts.forEach((text) => text.classList.remove("hidden"));
+              // Geser konten utama kembali
+              mainContent.classList.remove("md:ml-16");
+              mainContent.classList.add("md:ml-64"); // Sesuaikan dengan lebar sidebar yang expanded
+              // Ubah ikon toggle
+              iconPath.setAttribute("d", "M15 19l-7-7 7-7"); // Panah kiri
+            }
+          }
+          // Tambahkan event listener ke tombol toggle
+          toggleBtn.addEventListener("click", toggleSidebar);
+          // --- (Opsional) Simpan status toggle di localStorage ---
+          // Cek status dari localStorage saat halaman dimuat
+          const savedState = localStorage.getItem("bookDetailSidebarCollapsed");
+          if (savedState === "true") {
+            // Jika status tersimpan sebagai collapsed, toggle sekali
+            toggleSidebar(); // Ini akan mengubah isCollapsed ke true dan menerapkan gaya
+          }
+          // Simpan status baru saat tombol toggle diklik
+          toggleBtn.addEventListener("click", () => {
+            localStorage.setItem("bookDetailSidebarCollapsed", isCollapsed);
+          });
+        } else {
+          console.warn("Elemen sidebar desktop atau toggle tidak ditemukan.");
+        }
+      });
+    </script>
+  </body>
 </html>

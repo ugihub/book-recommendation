@@ -1,311 +1,416 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= book.judul %></title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-blue-50 min-h-screen font-sans text-gray-800">
-
-
-    <!-- Sidebar & Main Content Wrapper -->
-    <div class="flex min-h-screen">
-      <!-- Sidebar -->
-      <aside id="sidebar" class="hidden md:flex flex-col bg-white shadow-lg z-30 transition-all duration-300 w-64 md:w-64 sidebar-open">
-        <div class="flex items-center justify-between h-20 border-b border-blue-100 px-4">
-          <img src="/aksararia.png" alt="AKSARARIA Logo" class="h-10 object-contain sidebar-logo transition-all duration-300">
-          <button id="sidebar-toggle" class="text-blue-600 text-2xl focus:outline-none ml-2">
-            <span id="sidebar-toggle-icon">«</span>
-          </button>
-        </div>
-        <nav class="flex-1 p-6 space-y-2">
-          <a href="/" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-            <span class="text-blue-600 text-xl">🏠</span>
-            <span class="sidebar-label font-semibold text-blue-700 ml-3">Beranda</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= book.judul %></title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom styling */
+    .book-cover-container {
+      height: 400px;
+    }
+    .rating-star {
+      color: #facc15;
+    }
+    .sidebar-collapsed {
+      width: 4rem !important;
+    }
+    .sidebar-expanded {
+      width: 16rem !important;
+    }
+  </style>
+</head>
+<body class="bg-blue-50 min-h-screen font-sans text-gray-800">
+  <!-- Sidebar Desktop -->
+  <div id="desktop-sidebar" class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg hidden md:block z-10 transition-all duration-300 sidebar-expanded">
+    <div class="flex items-center justify-center h-16 border-b border-blue-200">
+      <img src="/images/aksararia.png" alt="AKSARARIA Logo" class="h-10 object-contain" />
+    </div>
+    <nav class="p-4 space-y-4">
+      <a href="/" class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group">
+        <span class="mr-3 text-lg">🏠</span>
+        <span class="sidebar-text">Beranda</span>
+      </a>
+      <% if (session && session.user) { %>
+        <a href="/profile" class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group">
+          <span class="mr-3 text-lg">👤</span>
+          <span class="sidebar-text">Profil</span>
+        </a>
+        <% if (session.user.role === 'admin') { %>
+          <a href="/admin/pending-books" class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group">
+            <span class="mr-3 text-lg">🛠️</span>
+            <span class="sidebar-text">Admin Panel</span>
           </a>
-          <% if (session && session.user) { %>
-            <a href="/profile" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-              <span class="text-blue-600 text-xl">👤</span>
-              <span class="sidebar-label font-semibold text-blue-700 ml-3">Profil</span>
+          <a href="/admin/users" class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group">
+            <span class="mr-3 text-lg">👥</span>
+            <span class="sidebar-text">Kelola Pengguna</span>
+          </a>
+          <% } else if (session.user.role === 'member') { %>
+            <a href="/books/submit-book" class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group">
+              <span class="mr-3 text-lg">📚</span>
+              <span class="sidebar-text">Submit Buku</span>
             </a>
-            <a href="/logout" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-              <span class="text-blue-600 text-xl">🚪</span>
-              <span class="sidebar-label font-semibold text-blue-700 ml-3">Logout</span>
+            <a href="/books/my-books" class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group">
+              <span class="mr-3 text-lg">📖</span>
+              <span class="sidebar-text">Buku Saya</span>
             </a>
-            <% if (session.user.role === 'admin') { %>
-              <a href="/admin/pending-books" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-                <span class="text-blue-600 text-xl">🛠️</span>
-                <span class="sidebar-label font-semibold text-blue-700 ml-3">Admin Panel</span>
-              </a>
-              <a href="/admin/users" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-                <span class="text-blue-600 text-xl">👥</span>
-                <span class="sidebar-label font-semibold text-blue-700 ml-3">Kelola Pengguna</span>
-              </a>
-            <% } else if (session.user.role === 'member') { %>
-              <a href="/books/submit-book" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-                <span class="text-blue-600 text-xl">📚</span>
-                <span class="sidebar-label font-semibold text-blue-700 ml-3">Submit Buku</span>
-              </a>
-              <a href="/books/my-books" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-                <span class="text-blue-600 text-xl">📖</span>
-                <span class="sidebar-label font-semibold text-blue-700 ml-3">Buku Saya</span>
-              </a>
-            <% } %>
-          <% } else { %>
-            <a href="/login" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-              <span class="text-blue-600 text-xl">🔑</span>
-              <span class="sidebar-label font-semibold text-blue-700 ml-3">Login</span>
+          <% } %> 
+            <a href="/logout" class="flex items-center text-red-600 hover:text-red-800 font-semibold p-2 rounded hover:bg-red-50 group">
+              <span class="mr-3 text-lg">🚪</span>
+              <span class="sidebar-text">Logout</span>
             </a>
-            <a href="/register" class="flex items-center px-3 py-2 rounded-lg hover:bg-blue-50 transition">
-              <span class="text-blue-600 text-xl">📝</span>
-              <span class="sidebar-label font-semibold text-blue-700 ml-3">Daftar</span>
-            </a>
-          <% } %>
-        </nav>
-      </aside>
-
-      <!-- Main Content -->
-      <div id="main-content" class="flex-1 p-6 transition-all duration-300 md:ml-64">
-    <!-- Sidebar Toggle Script -->
-    <script>
-      const sidebar = document.getElementById('sidebar');
-      const mainContent = document.getElementById('main-content');
-      const sidebarToggle = document.getElementById('sidebar-toggle');
-      const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
-      function setSidebar(open) {
-        if (open) {
-          sidebar.classList.remove('w-20', 'sidebar-closed');
-          sidebar.classList.add('w-64', 'sidebar-open');
-          mainContent.classList.remove('md:ml-20');
-          mainContent.classList.add('md:ml-64');
-          document.querySelectorAll('.sidebar-label').forEach(e => e.classList.remove('hidden'));
-          sidebarToggleIcon.textContent = '«';
-        } else {
-          sidebar.classList.remove('w-64', 'sidebar-open');
-          sidebar.classList.add('w-20', 'sidebar-closed');
-          mainContent.classList.remove('md:ml-64');
-          mainContent.classList.add('md:ml-20');
-          document.querySelectorAll('.sidebar-label').forEach(e => e.classList.add('hidden'));
-          sidebarToggleIcon.textContent = '»';
-        }
-      }
-      let sidebarOpen = true;
-      setSidebar(sidebarOpen);
-      sidebarToggle.addEventListener('click', () => {
-        sidebarOpen = !sidebarOpen;
-        setSidebar(sidebarOpen);
-      });
-      // Responsive: hide sidebar on mobile, show hamburger
-      // (You can add mobile drawer logic here if needed)
-    </script>
-
-
-        <!-- Flash Messages -->
-        <% if (success_msg) { %>
-        <div class="bg-green-100 text-green-700 p-3 rounded mb-6 text-center">
-          <%= success_msg %>
-        </div>
-        <% } %> <% if (error_msg) { %>
-        <div class="bg-red-100 text-red-700 p-3 rounded mb-6 text-center">
-          <%= error_msg %>
-        </div>
+        <% } else { %>
+        <a href="/login" class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group">
+          <span class="mr-3 text-lg">🔑</span>
+          <span class="sidebar-text">Login</span>
+        </a>
+        <a href="/register" class="flex items-center text-blue-600 hover:text-blue-800 font-semibold p-2 rounded hover:bg-blue-50 group">
+          <span class="mr-3 text-lg">📝</span>
+          <span class="sidebar-text">Daftar</span>
+        </a>
         <% } %>
+    </nav>
+    <button id="toggle-sidebar" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-blue-600 hover:text-blue-800 p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-all">
+      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" id="toggle-path" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+  </div>
 
-        <!-- Detail Buku -->
-        <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h1 class="text-2xl font-bold text-blue-800 mb-6">
+  <!-- Konten Utama -->
+  <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
+    <!-- Header -->
+    <header class="flex items-center gap-4 mb-8">
+      <img src="/images/aksararia.png" alt="AKSARARIA Logo" class="h-12 object-contain hidden md:block" />
+      <div>
+        <h1 id="book-title" class="text-3xl font-bold text-blue-800">AKSARARIA</h1>
+        <p class="text-lg text-blue-600">Temukan & Rekomendasikan Buku Terbaik</p>
+      </div>
+    </header>
+
+    <!-- Detail Buku -->
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+      <h1 class="text-2xl font-bold text-blue-800 mb-6 flex items-center">
         📚 <%= book.judul %>
       </h1>
-
+      
       <div class="flex flex-col md:flex-row gap-6">
         <!-- Sampul Buku -->
         <div class="md:w-1/3">
-          <% if (book.sampul_url) { %>
-          <img
-            src="<%= book.sampul_url %>"
-            alt="Sampul <%= book.judul %>"
-            class="w-full h-auto rounded-lg shadow-md"
-          />
-          <% } else { %>
-          <div
-            class="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500"
-          >
-            Sampul Tidak Tersedia
+          <div class="relative overflow-hidden rounded-lg shadow-md mb-4 book-cover-container">
+            <% if (book.sampul_url) { %>
+              <img 
+                src="<%= book.sampul_url %>" 
+                alt="Sampul <%= book.judul %>" 
+                class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              />
+            <% } else { %>
+              <div class="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                Sampul Tidak Tersedia
+              </div>
+            <% } %>
           </div>
-          <% } %>
         </div>
-
+        
         <!-- Detail Buku -->
         <div class="md:w-2/3 space-y-4">
-          <p>
-            <strong class="text-gray-700">Penulis:</strong> <%= book.penulis %>
-          </p>
-          <p>
-            <strong class="text-gray-700">Genre:</strong> <%= book.genre ||
-            'Tidak ada genre' %>
-          </p>
-          <p>
-            <strong class="text-gray-700">Tahun Terbit:</strong> <%=
-            book.tahun_terbit || 'Tidak diketahui' %>
-          </p>
-
-          <!-- Rating -->
-          <div class="mt-2">
-            <strong class="text-gray-700">Rating:</strong>
-            <% if (book.avg_rating) { %>
-            <div class="mt-2 text-yellow-500 font-bold">★ Rating: 
-              <%= book.avg_rating ? parseFloat(book.avg_rating).toFixed(1) : 'Belum ada rating' %>
+          <div class="flex items-center mb-2">
+            <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mr-2">
+              Penulis
             </div>
+            <p class="text-gray-700"><%= book.penulis %></p>
+          </div>
+          
+          <div class="flex items-center mb-2">
+            <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mr-2">
+              Genre
+            </div>
+            <p class="text-gray-700"><%= book.genre || 'Tidak ada genre' %></p>
+          </div>
+          
+          <div class="flex items-center mb-2">
+            <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mr-2">
+              Tahun Terbit
+            </div>
+            <p class="text-gray-700"><%= book.tahun_terbit || 'Tidak diketahui' %></p>
+          </div>
+          
+          <!-- Rating -->
+          <div class="mt-2 flex items-center">
+            <div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm mr-2">
+              Rating
+            </div>
+            <% if (book.avg_rating) { %>
+              <div class="text-yellow-500 font-bold">
+                ★<span class="ml-1"><%= parseFloat(book.avg_rating).toFixed(1) %></span>
+              </div>
             <% } else { %>
-            <span class="text-gray-500">Belum ada rating</span>
+              <span class="text-gray-500">Belum ada rating</span>
             <% } %>
           </div>
-
+          
           <!-- Sinopsis -->
           <div class="mt-6">
-            <% if (book.deskripsi) { %>
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">
-              📖 Sinopsis
-            </h3>
-            <p class="text-gray-700"><%= book.deskripsi %></p>
-            <% } else { %>
-            <p class="text-gray-500">Sinopsis belum tersedia.</p>
-            <% } %>
+            <h2 class="text-lg font-semibold text-blue-800 mb-2 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Sinopsis
+            </h2>
+            <p class="text-gray-700"><%= book.deskripsi || 'Sinopsis belum tersedia' %></p>
           </div>
-
+          
           <!-- Link Baca/Beli -->
           <% if (book.link_baca_beli) { %>
-          <p class="mt-4">
             <a
               href="<%= book.link_baca_beli %>"
               target="_blank"
-              class="inline-block text-blue-600 hover:text-blue-800 font-semibold"
-              >➡️ Baca atau Beli Buku</a
+              class="inline-flex items-center mt-4 text-blue-600 hover:text-blue-800 font-semibold"
             >
-          </p>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+              Baca atau Beli Buku
+            </a>
           <% } else { %>
-          <p class="mt-4 text-gray-500">Link baca/beli belum tersedia.</p>
+            <p class="mt-4 text-gray-500">Link baca/beli belum tersedia.</p>
           <% } %>
         </div>
       </div>
-
-      <!-- Daftar Rating & Ulasan -->
+      
+      <!-- Rating & Ulasan Pengguna -->
       <div class="mt-10">
         <h2 class="text-xl font-semibold text-blue-800 mb-4">
           Rating & Ulasan Pengguna
         </h2>
+        
         <% if (reviews && reviews.length > 0) { %>
-        <ul class="space-y-6">
-          <% reviews.forEach(review => { %>
-          <li class="border-b border-gray-200 pb-4 mb-4">
-            <div class="flex items-center justify-between">
-              <strong class="text-gray-800">
-                <% if (review.anonymous) { %> Anonim <% } else { %> <%=
-                review.reviewer_name %> <% } %>
-              </strong>
-              <% if (review.rating) { %>
-              <div
-                class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-bold"
-              >
-                ★ <%= review.rating %>
+          <div class="space-y-6">
+            <% reviews.forEach(review => { %>
+              <div class="border-b border-gray-200 pb-4 last:border-0">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <strong class="block text-gray-800">
+                      <% if (review.anonymous) { %> Anonim <% } else { %><%= review.reviewer_name %><% } %>
+                    </strong>
+                    <% if (review.ulasan) { %>
+                      <p class="text-gray-700 mt-1"><%= review.ulasan %></p>
+                    <% } %>
+                  </div>
+                  <% if (review.rating) { %>
+                    <div class="flex items-center">
+                      <div class="text-yellow-500">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="<%= i <= review.rating ? 'currentColor' : 'none' %>" viewBox="0 0 24 24" stroke="<%= i <= review.rating ? 'none' : 'currentColor' %>">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                          </svg>
+                        <% } %>
+                      </div>
+                      <span class="ml-1 text-gray-700"><%= review.rating %></span>
+                    </div>
+                  <% } %>
+                </div>
               </div>
-              <% } %>
-            </div>
-            <% if (review.ulasan) { %>
-            <div class="mt-2 text-gray-700"><%= review.ulasan %></div>
-            <% } %>
-          </li>
-          <% }) %>
-        </ul>
+            <% }) %>
+          </div>
         <% } else { %>
-        <p class="text-gray-500">Belum ada rating atau ulasan.</p>
+          <p class="text-gray-500">Belum ada ulasan atau rating.</p>
+        <% } %>
+        
+        <% if (!session || !session.user) { %>
+          <div class="mt-6 text-center">
+            <a href="/login" class="text-blue-600 hover:text-blue-800 font-medium">
+              Login untuk memberikan rating/ulasan.
+            </a>
+          </div>
         <% } %>
       </div>
-
+      
       <!-- Form Rating & Ulasan -->
       <% if (session && session.user) { %>
-      <div class="mt-10 p-4 bg-white rounded-lg shadow-md">
-        <h3 class="text-lg font-semibold text-blue-800 mb-4">
-          Beri Rating atau Ulasan
-        </h3>
-        <% if (error_msg) { %>
-        <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
-          <%= error_msg %>
-        </div>
-        <% } %>
-        <form action="/reviews/submit" method="POST" class="space-y-4">
-          <input type="hidden" name="book_id" value="<%= book.id %>" />
-
-          <!-- Rating -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Rating (1-5)</label
-            >
-            <select
-              name="rating"
-              required
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="">Pilih Rating</option>
-              <% for (let i = 1; i <= 5; i++) { %>
-              <option value="<%= i %>"><%= i %> ★</option>
-              <% } %>
-            </select>
-          </div>
-
-          <!-- Ulasan -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Ulasan (opsional)</label
-            >
-            <textarea
-              name="ulasan"
-              rows="5"
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            ></textarea>
-          </div>
-
-          <!-- Nama & Anonim -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Nama (Opsional)</label
-            >
-            <input
-              type="text"
-              name="reviewer_name"
-              placeholder="Isi nama atau kosongkan untuk anonim"
-              class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <div class="flex items-center">
-            <label class="inline-flex items-center">
+        <div class="mt-10 p-4 bg-white rounded-lg shadow-md">
+          <h3 class="text-lg font-semibold text-blue-800 mb-4">
+            Beri Rating atau Ulasan
+          </h3>
+          <% if (error_msg) { %>
+            <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
+              <%= error_msg %>
+            </div>
+          <% } %>
+          <form action="/reviews/submit" method="POST" class="space-y-4">
+            <input type="hidden" name="book_id" value="<%= book.id %>" />
+            
+            <!-- Rating -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+                </svg>
+                Rating (1-5)
+              </label>
+              <select
+                name="rating"
+                required
+                class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              >
+                <option value="">Pilih Rating</option>
+                <% for (let i = 1; i <= 5; i++) { %>
+                  <option value="<%= i %>"><%= i %> ★</option>
+                <% } %>
+              </select>
+            </div>
+            
+            <!-- Ulasan -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Ulasan (opsional)
+              </label>
+              <textarea
+                name="ulasan"
+                rows="5"
+                class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              ></textarea>
+            </div>
+            
+            <!-- Nama & Anonim -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Nama (Opsional)
+              </label>
               <input
-                type="checkbox"
-                name="anonymous"
-                value="true"
-                class="form-checkbox h-4 w-4 text-blue-600"
+                type="text"
+                name="reviewer_name"
+                placeholder="Isi nama atau kosongkan untuk anonim"
+                class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
-              <span class="ml-2 text-gray-700">Tampilkan sebagai Anonim</span>
-            </label>
-          </div>
-
-          <button
-            type="submit"
-            class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-          >
-            Kirim
-          </button>
-        </form>
-      </div>
-      <% } else { %>
-      <p class="mt-6 text-center text-blue-600">
-        <a href="/login">Login</a> untuk memberikan rating/ulasan.
-      </p>
+            </div>
+            
+            <div class="flex items-center">
+              <label class="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  name="anonymous"
+                  value="true"
+                  class="form-checkbox h-4 w-4 text-blue-600"
+                />
+                <span class="ml-2 text-gray-700">Tampilkan sebagai Anonim</span>
+              </label>
+            </div>
+            
+            <button
+              type="submit"
+              class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Kirim
+            </button>
+          </form>
+        </div>
       <% } %>
     </div>
-      </div>
+  </div>
+
+  <!-- Sidebar Mobile -->
+  <div id="mobile-sidebar" class="md:hidden fixed inset-0 z-50 bg-white w-64 shadow-lg transform -translate-x-full transition-transform duration-300">
+    <div class="flex justify-between items-center p-4 border-b border-blue-200">
+      <img src="/images/aksararia.png" alt="AKSARARIA Logo" class="h-8 object-contain" />
+      <button id="close-sidebar" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
     </div>
-  </body>
+    <div class="p-4 space-y-4">
+      <a href="/" class="block text-blue-600 hover:text-blue-800 font-semibold">🏠 Beranda</a>
+      <% if (session && session.user) { %>
+        <a href="/profile" class="block text-blue-600 hover:text-blue-800 font-semibold">👤 Profil</a>
+        <% if (session.user.role === 'admin') { %>
+          <a href="/admin/pending-books" class="block text-blue-600 hover:text-blue-800 font-semibold">🛠️ Admin Panel</a>
+          <a href="/admin/users" class="block text-blue-600 hover:text-blue-800 font-semibold">👥 Kelola Pengguna</a>
+          <% } else if (session.user.role === 'member') { %>
+            <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
+            <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>
+          <% } %> 
+          <a href="/logout" class="block text-red-600 hover:text-red-800 font-semibold">🚪 Logout</a>
+          <% } else { %>
+        <a href="/login" class="block text-blue-600 hover:text-blue-800 font-semibold">🔑 Login</a>
+        <a href="/register" class="block text-blue-600 hover:text-blue-800 font-semibold">📝 Daftar</a>
+        <% } %>
+    </div>
+  </div>
+
+  <!-- Tombol Hamburger untuk Mobile -->
+  <button id="mobile-menu-toggle" class="md:hidden fixed bottom-4 right-4 z-40 bg-blue-500 text-white p-3 rounded-full shadow-md hover:shadow-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Toggle Sidebar Desktop
+      const toggleBtn = document.getElementById('toggle-sidebar');
+      const sidebar = document.getElementById('desktop-sidebar');
+      const mainContent = document.getElementById('main-content');
+      const sidebarTexts = document.querySelectorAll('.sidebar-text');
+      const iconPath = document.getElementById('toggle-path');
+      
+      if (toggleBtn && sidebar && mainContent && sidebarTexts.length > 0 && iconPath) {
+        let isCollapsed = false;
+        
+        toggleBtn.addEventListener('click', () => {
+          isCollapsed = !isCollapsed;
+          
+          if (isCollapsed) {
+            sidebar.classList.remove('sidebar-expanded');
+            sidebar.classList.add('sidebar-collapsed');
+            mainContent.classList.remove('md:ml-64');
+            mainContent.classList.add('md:ml-16');
+            sidebarTexts.forEach(text => text.classList.add('hidden'));
+            iconPath.setAttribute('d', 'M9 5l7 7-7 7');
+          } else {
+            sidebar.classList.remove('sidebar-collapsed');
+            sidebar.classList.add('sidebar-expanded');
+            mainContent.classList.remove('md:ml-16');
+            mainContent.classList.add('md:ml-64');
+            sidebarTexts.forEach(text => text.classList.remove('hidden'));
+            iconPath.setAttribute('d', 'M15 19l-7-7 7-7');
+          }
+        });
+      }
+      
+      // Mobile Sidebar
+      const menuToggle = document.getElementById('mobile-menu-toggle');
+      const closeSidebar = document.getElementById('close-sidebar');
+      const mobileSidebar = document.getElementById('mobile-sidebar');
+      
+      if (menuToggle && closeSidebar && mobileSidebar) {
+        menuToggle.addEventListener('click', () => {
+          mobileSidebar.classList.remove('-translate-x-full');
+          mobileSidebar.classList.add('translate-x-0');
+        });
+        
+        closeSidebar.addEventListener('click', () => {
+          mobileSidebar.classList.add('-translate-x-full');
+        });
+        
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (event) => {
+          if (
+            !mobileSidebar.contains(event.target) &&
+            !event.target.closest('#mobile-menu-toggle')
+          ) {
+            mobileSidebar.classList.add('-translate-x-full');
+          }
+        });
+      }
+    });
+  </script>
+</body>
 </html>
