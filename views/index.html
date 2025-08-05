@@ -99,7 +99,6 @@
       <a href="/profile" class="block text-blue-600 hover:text-blue-800 font-semibold">👤 Profil</a>
       <% if (session.user.role === 'admin') { %>
         <a href="/admin/pending-books" class="block text-blue-600 hover:text-blue-800 font-semibold">🛠️ Admin Panel</a>
-        <a href="/admin/users" class="block text-blue-600 hover:text-blue-800 font-semibold">👥 Kelola Pengguna</a>
         <% } else if (session.user.role === 'member') { %>
           <a href="/books/submit-book" class="block text-blue-600 hover:text-blue-800 font-semibold">📚 Submit Buku</a>
           <a href="/books/my-books" class="block text-blue-600 hover:text-blue-800 font-semibold">📖 Buku Saya</a>

@@ -5,7 +5,7 @@ exports.getBooks = async (req, res) => {
 
     // Query dasar
     let query = `
-    SELECT b.id, b.judul, b.penulis, b.genre, b.tahun_terbit, b.sampul_url,
+    SELECT b.id, b.judul, b.penulis, b.genre, b.tahun_terbit, b.sampul_url, b.deskripsi, b.link_baca_beli,
     ROUND((SELECT AVG(rating) FROM reviews WHERE book_id = b.id), 1) AS avg_rating
     FROM books b
     WHERE TRUE
