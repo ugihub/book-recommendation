@@ -43,34 +43,44 @@ function ensureRole(role) {
 
 async function ensureDailyBookLimit(req, res, next) {
     const user = req.session.user;
-    const userResult = await db.query('SELECT suspended_until FROM users WHERE id = $1', [user.id]);
-    const suspendedUntil = userResult.rows[0]?.suspended_until;
 
-    // ✅ Cek apakah user sedang ditangguhkan
-    if (suspendedUntil && new Date() < new Date(suspendedUntil)) {
-        req.flash('error_msg', 'Anda sedang ditangguhkan dan tidak bisa submit buku.');
-        return res.redirect('/');
+    try {
+        // Cek apakah user sedang ditangguhkan
+        const userResult = await db.query('SELECT suspended_until FROM users WHERE id = $1', [user.id]);
+        const suspendedUntil = userResult.rows[0]?.suspended_until;
+
+        if (suspendedUntil && new Date() < new Date(suspendedUntil)) {
+            req.flash('error_msg', 'Anda sedang ditangguhkan dan tidak bisa submit buku.');
+            return res.redirect('/books/my-books');
+        }
+
+        // Cek jumlah submit buku per hari
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+
+        const result = await db.query(
+            `SELECT COUNT(*) FROM book_submissions 
+       WHERE submitter_id = $1 AND created_at BETWEEN $2 AND $3`,
+            [user.id, todayStart, todayEnd]
+        );
+
+        const submissionCount = parseInt(result.rows[0].count, 10);
+
+        if (submissionCount >= 5) {
+            req.flash('error_msg', 'Batas maksimal 5 buku per hari telah tercapai.');
+            // Redirect ke halaman my-books, bukan ke submit-book
+            return res.redirect('/books/my-books');
+        }
+
+        next();
+    } catch (err) {
+        console.error('Error in ensureDailyBookLimit:', err);
+        req.flash('error_msg', 'Terjadi kesalahan saat memeriksa batas submit buku.');
+        // Redirect ke halaman my-books jika terjadi error
+        res.redirect('/books/my-books');
     }
-
-    // ✅ Cek jumlah submit buku per hari
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
-
-    const result = await db.query(
-        `SELECT COUNT(*) FROM book_submissions 
-     WHERE submitter_id = $1 AND created_at BETWEEN $2 AND $3`,
-        [user.id, todayStart, todayEnd]
-    );
-
-    const submissionCount = parseInt(result.rows[0].count, 10);
-    if (submissionCount >= 5) {
-        req.flash('error_msg', 'Batas maksimal 5 buku per hari telah tercapai.');
-        return res.redirect('/submit-book');
-    }
-
-    next();
 }
 
 function ensureAdmin(req, res, next) {
@@ -90,29 +100,33 @@ function preventLoggedInAccess(req, res, next) {
 // Middleware untuk memastikan buku milik member
 async function ensureBookOwnership(req, res, next) {
     const bookId = req.params.id;
-    const userId = req.session.user?.id;
-
-    if (!userId) {
-        req.flash('error_msg', 'Silakan login terlebih dahulu.');
-        return res.redirect('/login');
-    }
+    const userId = req.session.user.id;
 
     try {
-        const result = await db.query(`
-      SELECT * FROM books 
-      WHERE id = $1 AND submitter_id = $2
-    `, [bookId, userId]);
+        // Periksa di tabel books terlebih dahulu
+        const bookResult = await db.query(
+            'SELECT * FROM books WHERE id = $1 AND submitter_id = $2',
+            [bookId, userId]
+        );
 
-        if (result.rows.length === 0) {
-            req.flash('error_msg', 'Anda tidak memiliki akses ke buku ini.');
-            return res.redirect('/books/my-books');
+        // Jika tidak ditemukan di books, cek di book_submissions
+        if (bookResult.rows.length === 0) {
+            const submissionResult = await db.query(
+                'SELECT * FROM book_submissions WHERE id = $1 AND submitter_id = $2',
+                [bookId, userId]
+            );
+
+            if (submissionResult.rows.length === 0) {
+                req.flash('error_msg', 'Anda tidak memiliki akses ke buku ini.');
+                return res.redirect('/books/my-books');
+            }
         }
 
-        req.book = result.rows[0]; // Tambahkan data buku ke req
         next();
     } catch (err) {
-        req.flash('error_msg', 'Terjadi kesalahan.');
-        res.redirect('/');
+        console.error('Error in ensureBookOwnership:', err);
+        req.flash('error_msg', 'Terjadi kesalahan saat memverifikasi kepemilikan buku.');
+        res.redirect('/books/my-books');
     }
 }
 

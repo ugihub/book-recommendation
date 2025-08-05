@@ -222,6 +222,29 @@
           Submit Buku Baru
         </h2>
 
+        <!-- Informasi Batas Submit -->
+        <% if (typeof remainingSubmissions !== 'undefined' && typeof totalLimit
+        !== 'undefined') { %>
+        <div class="bg-blue-100 text-blue-700 p-4 rounded mb-6">
+          <p class="font-semibold">Informasi Submit Buku:</p>
+          <p>
+            Anda telah mengirim <%= submissionCount %> dari <%= totalLimit %>
+            buku maksimal hari ini.
+          </p>
+          <p class="mt-2">
+            Sisa kuota:
+            <span class="font-bold"><%= remainingSubmissions %></span> buku
+          </p>
+
+          <% if (remainingSubmissions <= 0) { %>
+          <div class="mt-2 bg-red-100 text-red-700 p-2 rounded">
+            <p class="font-bold">Batas submit harian telah tercapai.</p>
+            <p>Anda tidak dapat mengirim buku baru hari ini.</p>
+          </div>
+          <% } %>
+        </div>
+        <% } %>
+
         <form
           action="/books/submit"
           method="POST"

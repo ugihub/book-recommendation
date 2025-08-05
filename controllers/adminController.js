@@ -3,12 +3,22 @@ const db = require('../config/db');
 // Tampilkan buku yang menunggu persetujuan
 exports.getPendingBooks = async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM book_submissions WHERE status = $1', ['pending']);
-    res.render('adminPanel', { submissions: result.rows }); // ✅ Harus ada
+    const pendingBooks = await db.query(`
+            SELECT * FROM book_submissions 
+            WHERE status = 'pending'
+            ORDER BY submitted_at DESC
+        `);
+
+    // Kirim data dengan nama 'submissions' agar konsisten dengan view
+    res.render('adminPanel', {
+      submissions: pendingBooks.rows,
+      success_msg: req.flash('success_msg'),
+      error_msg: req.flash('error_msg')
+    });
   } catch (err) {
-    req.flash('error_msg', 'Gagal memuat buku yang menunggu persetujuan.');
     console.error(err);
-    res.redirect('/');
+    req.flash('error_msg', 'Gagal memuat daftar buku yang menunggu persetujuan.');
+    res.redirect('/admin');
   }
 };
 
@@ -18,61 +28,194 @@ exports.approveBook = async (req, res) => {
   const adminId = req.session.user.id;
 
   try {
-    const submissionResult = await db.query('SELECT * FROM book_submissions WHERE id = $1', [submissionId]);
+    const submissionResult = await db.query(
+      'SELECT * FROM book_submissions WHERE id = $1',
+      [submissionId]
+    );
+
+    if (submissionResult.rows.length === 0) {
+      req.flash('error_msg', 'Pengajuan buku tidak ditemukan.');
+      return res.redirect('/admin/pending-books');
+    }
+
     const submission = submissionResult.rows[0];
 
-    // Pindahkan ke tabel `books`
+    // Pindahkan ke tabel `books` dengan menyertakan submitter_id dan status
     await db.query(
-      `INSERT INTO books (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, awards)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [submission.judul, submission.penulis, submission.deskripsi, submission.genre, submission.tahun_terbit, submission.sampul_url, submission.link_baca_beli, submission.awards]
+      `INSERT INTO books 
+            (judul, penulis, deskripsi, genre, tahun_terbit, sampul_url, link_baca_beli, awards, submitter_id, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        submission.judul,
+        submission.penulis,
+        submission.deskripsi,
+        submission.genre,
+        submission.tahun_terbit,
+        submission.sampul_url,
+        submission.link_baca_beli,
+        submission.awards,
+        submission.submitter_id,
+        'approved'
+      ]
     );
 
     // Update status submission
     await db.query(
-      `UPDATE book_submissions SET status = $1, approved_by = $2 WHERE id = $3`,
+      `UPDATE book_submissions 
+             SET status = $1, approved_by = $2 
+             WHERE id = $3`,
       ['approved', adminId, submissionId]
     );
 
     req.flash('success_msg', 'Buku berhasil disetujui.');
+    res.redirect('/admin/pending-books');
   } catch (err) {
     req.flash('error_msg', 'Gagal menyetujui buku.');
     console.error(err);
+    res.redirect('/admin/pending-books');
   }
-
-  res.redirect('/admin/pending-books');
 };
 
-// Hapus buku (jika ditolak)
+// Tolak buku
 exports.rejectBook = async (req, res) => {
   const submissionId = req.params.id;
-
   try {
-    await db.query('DELETE FROM book_submissions WHERE id = $1', [submissionId]);
-    req.flash('success_msg', 'Buku berhasil ditolak dan dihapus.');
+    await db.query(
+      'UPDATE book_submissions SET status = $1 WHERE id = $2',
+      ['rejected', submissionId]
+    );
+    req.flash('success_msg', 'Buku berhasil ditolak.');
   } catch (err) {
     req.flash('error_msg', 'Gagal menolak buku.');
     console.error(err);
   }
-
   res.redirect('/admin/pending-books');
 };
 
+// Hapus buku (dengan mengubah status)
 exports.deleteBook = async (req, res) => {
   const bookId = req.params.id;
-
   try {
-    // Hapus semua ulasan dan rating terkait
-    await db.query('DELETE FROM reviews WHERE book_id = $1', [bookId]);
-    await db.query('DELETE FROM books WHERE id = $1', [bookId]);
+    // Update status menjadi 'deleted' (JANGAN HAPUS LANGSUNG)
+    await db.query(
+      'UPDATE books SET status = $1 WHERE id = $2',
+      ['deleted', bookId]
+    );
 
-    req.flash('success_msg', 'Buku dan semua ulasan berhasil dihapus.');
+    // Update status di book_submissions juga
+    await db.query(
+      'UPDATE book_submissions SET status = $1 WHERE id = $2',
+      ['deleted', bookId]
+    );
+
+    req.flash('success_msg', 'Buku berhasil dihapus dan tidak akan muncul di daftar buku.');
   } catch (err) {
     req.flash('error_msg', 'Gagal menghapus buku.');
     console.error(err);
   }
-
   res.redirect('/admin/approved-books');
+};
+
+// Tampilkan daftar edit buku yang menunggu
+exports.getPendingEdits = async (req, res) => {
+  try {
+    const result = await db.query(`
+            SELECT e.id, b.id AS book_id, b.judul, e.judul AS edit_judul, e.penulis AS edit_penulis, e.status
+            FROM book_edits e
+            JOIN books b ON e.book_id = b.id
+            WHERE e.status = 'pending' AND b.status != 'deleted'
+            ORDER BY e.submitted_at DESC
+        `);
+    res.render('adminPendingEdits', { edits: result.rows });
+  } catch (err) {
+    req.flash('error_msg', 'Gagal memuat daftar edit buku.');
+    console.error(err);
+    res.redirect('/admin/pending-books');
+  }
+};
+
+// Setujui edit buku
+exports.approveBookEdit = async (req, res) => {
+  const editId = req.params.id;
+  try {
+    const editResult = await db.query(
+      'SELECT * FROM book_edits WHERE id = $1',
+      [editId]
+    );
+
+    if (editResult.rows.length === 0) {
+      req.flash('error_msg', 'Edit buku tidak ditemukan.');
+      return res.redirect('/admin/book-edits');
+    }
+
+    const edit = editResult.rows[0];
+
+    // Update tabel `books` dengan perubahan
+    await db.query(
+      `UPDATE books SET 
+                judul = COALESCE($1, judul),
+                penulis = COALESCE($2, penulis),
+                genre = COALESCE($3, genre),
+                tahun_terbit = COALESCE($4, tahun_terbit),
+                deskripsi = COALESCE($5, deskripsi),
+                link_baca_beli = COALESCE($6, link_baca_beli),
+                sampul_url = COALESCE($7, sampul_url)
+            WHERE id = $8`,
+      [
+        edit.judul,
+        edit.penulis,
+        edit.genre,
+        edit.tahun_terbit,
+        edit.deskripsi,
+        edit.link_baca_beli,
+        edit.sampul_url,
+        edit.book_id
+      ]
+    );
+
+    // Update status edit
+    await db.query(
+      'UPDATE book_edits SET status = $1 WHERE id = $2',
+      ['approved', editId]
+    );
+
+    req.flash('success_msg', 'Perubahan buku berhasil disetujui.');
+  } catch (err) {
+    req.flash('error_msg', 'Gagal menyetujui perubahan buku.');
+    console.error(err);
+  }
+  res.redirect('/admin/book-edits');
+};
+
+// Tolak edit buku
+exports.rejectBookEdit = async (req, res) => {
+  const editId = req.params.id;
+  try {
+    await db.query(
+      'UPDATE book_edits SET status = $1 WHERE id = $2',
+      ['rejected', editId]
+    );
+    req.flash('success_msg', 'Perubahan buku berhasil ditolak.');
+  } catch (err) {
+    req.flash('error_msg', 'Gagal menolak perubahan buku.');
+    console.error(err);
+  }
+  res.redirect('/admin/book-edits');
+};
+
+// Tampilkan buku yang sudah disetujui
+exports.getApprovedBooks = async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM books WHERE status != $1 ORDER BY id DESC',
+      ['deleted']
+    );
+    res.render('adminApprovedBooks', { books: result.rows });
+  } catch (err) {
+    req.flash('error_msg', 'Gagal memuat daftar buku yang disetujui.');
+    console.error(err);
+    res.redirect('/');
+  }
 };
 
 // Suspend member selama 1 hari (misalnya)
@@ -157,97 +300,4 @@ exports.promoteToMember = async (req, res) => {
   }
 
   res.redirect('/admin/users');
-};
-
-// Tampilkan buku yang sudah disetujui
-exports.getApprovedBooks = async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM books ORDER BY id DESC');
-    res.render('adminApprovedBooks', { books: result.rows }); // ✅ Pastikan variabel bernama `books`
-  } catch (err) {
-    req.flash('error_msg', 'Gagal memuat daftar buku yang disetujui.');
-    console.error(err);
-    res.redirect('/');
-  }
-};
-
-// Hapus buku dan semua ulasan/rating terkait
-exports.deleteBook = async (req, res) => {
-  const bookId = req.params.id;
-
-  try {
-    // Hapus semua ulasan dan rating terkait
-    await db.query('DELETE FROM reviews WHERE book_id = $1', [bookId]);
-    await db.query('DELETE FROM books WHERE id = $1', [bookId]);
-
-    req.flash('success_msg', 'Buku dan semua ulasan berhasil dihapus.');
-  } catch (err) {
-    req.flash('error_msg', 'Gagal menghapus buku.');
-    console.error(err);
-  }
-
-  res.redirect('/admin/approved-books');
-};
-
-// Tampilkan daftar edit buku yang menunggu
-exports.getPendingEdits = async (req, res) => {
-  try {
-    const result = await db.query(`
-      SELECT e.id, b.judul, e.judul AS edit_judul, e.penulis AS edit_penulis, e.status
-      FROM book_edits e
-      JOIN books b ON e.book_id = b.id
-      WHERE e.status = 'pending'
-    `);
-    res.render('adminPendingEdits', { edits: result.rows });
-  } catch (err) {
-    req.flash('error_msg', 'Gagal memuat daftar edit buku.');
-    res.redirect('/admin/pending-books');
-  }
-};
-
-// Setujui edit buku
-exports.approveBookEdit = async (req, res) => {
-  const editId = req.params.id;
-  try {
-    const editResult = await db.query('SELECT * FROM book_edits WHERE id = $1', [editId]);
-    const edit = editResult.rows[0];
-
-    // Update tabel `books` dengan perubahan
-    await db.query(
-      `UPDATE books SET 
-        judul = COALESCE($1, judul),
-        penulis = COALESCE($2, penulis),
-        genre = COALESCE($3, genre),
-        tahun_terbit = COALESCE($4, tahun_terbit),
-        deskripsi = COALESCE($5, deskripsi),
-        link_baca_beli = COALESCE($6, link_baca_beli),
-        sampul_url = COALESCE($7, sampul_url)
-      WHERE id = $8`,
-      [edit.judul, edit.penulis, edit.genre, edit.tahun_terbit, edit.deskripsi, edit.link_baca_beli, edit.sampul_url, edit.book_id]
-    );
-
-    // Update status edit
-    await db.query('UPDATE book_edits SET status = $1 WHERE id = $2', ['approved', editId]);
-
-    req.flash('success_msg', 'Perubahan buku berhasil disetujui.');
-  } catch (err) {
-    req.flash('error_msg', 'Gagal menyetujui perubahan buku.');
-    console.error(err);
-  }
-
-  res.redirect('/admin/book-edits');
-};
-
-// Hapus edit buku
-exports.rejectBookEdit = async (req, res) => {
-  const editId = req.params.id;
-  try {
-    await db.query('DELETE FROM book_edits WHERE id = $1', [editId]);
-    req.flash('success_msg', 'Perubahan buku berhasil ditolak.');
-  } catch (err) {
-    req.flash('error_msg', 'Gagal menolak perubahan buku.');
-    console.error(err);
-  }
-
-  res.redirect('/admin/book-edits');
 };

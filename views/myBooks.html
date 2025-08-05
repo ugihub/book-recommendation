@@ -116,7 +116,6 @@
         </svg>
       </button>
     </div>
-
     <!-- Sidebar Mobile -->
     <div
       id="mobile-sidebar"
@@ -191,7 +190,6 @@
         <% } %>
       </div>
     </div>
-
     <!-- Tombol Hamburger untuk Mobile -->
     <button
       id="mobile-menu-toggle"
@@ -212,7 +210,6 @@
         />
       </svg>
     </button>
-
     <!-- Konten Utama -->
     <div id="main-content" class="md:ml-64 p-6 transition-all duration-300">
       <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
@@ -221,6 +218,12 @@
         >
           📖 Buku Saya
         </h2>
+        <!-- Informasi Buku yang Dihapus -->
+        <% if (info_msg) { %>
+        <div class="bg-yellow-100 text-yellow-700 p-4 rounded mb-6">
+          <p class="font-semibold"><%= info_msg %></p>
+        </div>
+        <% } %>
 
         <!-- Flash Messages -->
         <% if (success_msg) { %>
@@ -232,7 +235,6 @@
           <%= error_msg %>
         </div>
         <% } %>
-
         <!-- Daftar Buku -->
         <div class="overflow-x-auto">
           <table class="min-w-full bg-white rounded-lg shadow text-sm">
@@ -267,22 +269,11 @@
                 </td>
                 <td class="py-2 px-4"><%= book.penulis %></td>
                 <td class="py-2 px-4">
-                  <% if (book.status === 'pending') { %>
-                  <span
-                    class="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold"
-                    >Menunggu Persetujuan</span
-                  >
-                  <% } else if (book.status === 'approved') { %>
                   <span
                     class="inline-block px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold"
-                    >Disetujui</span
                   >
-                  <% } else { %>
-                  <span
-                    class="inline-block px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-semibold"
-                    >Tidak ada Tindakan</span
-                  >
-                  <% } %>
+                    Disetujui
+                  </span>
                 </td>
                 <td class="py-2 px-4">
                   <%= new Date(book.created_at).toLocaleDateString('id-ID') %>
@@ -291,22 +282,32 @@
                   <% if (book.edit_status === 'pending') { %>
                   <span
                     class="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold"
-                    >Menunggu Persetujuan</span
                   >
+                    Menunggu Persetujuan
+                  </span>
                   <% } else if (book.edit_status === 'approved') { %>
                   <span
                     class="inline-block px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold"
-                    >Perubahan Disetujui</span
                   >
+                    Perubahan Disetujui
+                  </span>
+                  <% } else if (book.edit_status === 'rejected') { %>
+                  <span
+                    class="inline-block px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold"
+                  >
+                    Perubahan Ditolak
+                  </span>
                   <% } else { %>
                   <span
                     class="inline-block px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs font-semibold"
-                    >Belum Ada Edit</span
                   >
+                    Belum Ada Edit
+                  </span>
                   <% } %>
                 </td>
                 <td class="py-2 px-4">
-                  <% if (book.edit_status !== 'pending') { %>
+                  <% if (book.edit_status !== 'pending' && book.edit_status !==
+                  'rejected') { %>
                   <a
                     href="/books/edit/<%= book.id %>"
                     class="text-blue-600 hover:text-blue-800 font-semibold text-sm"
@@ -322,14 +323,15 @@
               <% }) %> <% } else { %>
               <tr>
                 <td colspan="6" class="py-4 text-center text-gray-500">
-                  Belum ada buku yang diajukan.
+                  <% if (info_msg) { %> Anda tidak memiliki buku yang aktif.
+                  Semua buku Anda telah dihapus oleh admin. <% } else { %> Belum
+                  ada buku yang disetujui. <% } %>
                 </td>
               </tr>
               <% } %>
             </tbody>
           </table>
         </div>
-
         <!-- Kembali ke Beranda -->
         <div class="mt-8 text-center">
           <a href="/" class="text-blue-500 hover:text-blue-700 font-semibold">
@@ -338,7 +340,6 @@
         </div>
       </div>
     </div>
-
     <!-- Script Toggle Sidebar -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
