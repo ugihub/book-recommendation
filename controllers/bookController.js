@@ -76,7 +76,7 @@ exports.getBookDetail = async (req, res) => {
     try {
         const bookResult = await db.query(`
       SELECT 
-        b.id, b.judul, b.penulis, b.genre, b.tahun_terbit, b.deskripsi, b.sampul_url,
+        b.id, b.judul, b.penulis, b.genre, b.tahun_terbit, b.deskripsi, b.sampul_url, b.link_baca_beli,
         ROUND((SELECT AVG(r.rating) FROM reviews r WHERE r.book_id = b.id AND r.status = 'approved'), 1) AS avg_rating,
         (SELECT COUNT(*) FROM reviews r WHERE r.book_id = b.id AND r.status = 'approved') AS total_ratings
       FROM books b
